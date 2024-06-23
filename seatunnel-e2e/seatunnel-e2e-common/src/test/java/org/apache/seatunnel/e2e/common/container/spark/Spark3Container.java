@@ -31,7 +31,7 @@ import java.io.File;
  * Spark3Container#executeJob} to submit a seatunnel conf and a seatunnel spark job.
  */
 @NoArgsConstructor
-@AutoService(TestContainer.class)
+
 public class Spark3Container extends AbstractTestSparkContainer {
 
     @Override

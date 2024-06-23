@@ -31,7 +31,7 @@ import java.io.File;
  * {@link Flink16Container#executeJob} to submit a seatunnel config and run a seatunnel job.
  */
 @NoArgsConstructor
-@AutoService(TestContainer.class)
+
 public class Flink16Container extends AbstractTestFlinkContainer {
 
     @Override

@@ -109,13 +109,27 @@ public class SeaTunnelContainer extends AbstractTestContainer {
                         PROJECT_ROOT_PATH
                                 + "/seatunnel-shade/seatunnel-hadoop3-3.1.4-uber/target/seatunnel-hadoop3-3.1.4-uber.jar"),
                 Paths.get(SEATUNNEL_HOME, "lib/seatunnel-hadoop3-3.1.4-uber.jar").toString());
+        server.withCopyFileToContainer(
+                MountableFile.forHostPath(
+                        PROJECT_ROOT_PATH
+                                + "/seatunnel-transforms-v2/src/test/java/org/apache/seatunnel/transform/python/process_data.py"),
+                Paths.get(SEATUNNEL_HOME, "config", "process_data.py").toString());
         // execute extra commands
         executeExtraCommands(server);
 
         server.start();
+        installPython(server);
         return server;
     }
 
+    private void installPython(GenericContainer<?> container) throws IOException, InterruptedException {
+        String[] installCommand = {"apt-get", "update", "&&", "apt-get", "install", "-y", "python3", "python3-pip"};
+        container.execInContainer(installCommand);
+
+        // Optional: Install Python packages if needed
+        // String[] installPackagesCommand = {"pip3", "install", "some-python-package"};
+        // container.execInContainer(installPackagesCommand);
+    }
     protected GenericContainer<?> createSeaTunnelContainerWithFakeSourceAndInMemorySink(
             String configFilePath) throws IOException, InterruptedException {
         GenericContainer<?> server =
@@ -181,6 +195,7 @@ public class SeaTunnelContainer extends AbstractTestContainer {
                         PROJECT_ROOT_PATH
                                 + "/seatunnel-e2e/seatunnel-engine-e2e/connector-seatunnel-e2e-base/src/test/resources/fake-and-inmemory/plugin-mapping.properties"),
                 Paths.get(SEATUNNEL_HOME, "connectors", "plugin-mapping.properties").toString());
+
         return server;
     }
 

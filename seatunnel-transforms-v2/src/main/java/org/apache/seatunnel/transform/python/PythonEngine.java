@@ -26,8 +26,9 @@ public class PythonEngine {
     private Process pythonProcess;
     private PrintWriter writer;
     private BufferedReader reader;
-    private static final String PATH_PYTHON = "/usr/local/bin/python3";
-
+//    private static final String PATH_PYTHON = "/usr/local/bin/python3";
+    private static final String PATH_PYTHON = "/usr/bin/python3";
+//    private static final String PATH_PYTHON = "C:\\software\\Python3\\python.exe";
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     public PythonEngine(String scriptPath) {
@@ -49,13 +50,12 @@ public class PythonEngine {
     }
 
     public SeaTunnelRow transformByPython(SeaTunnelRow inputRow) {
-        List<Object> outputList = null;
+        List<Object> outputList;
         try {
             // Communicate with Python process
-            for (Object object : inputRow.getFields()) {
-                System.out.println("received line" + object);
-                writer.println(object);
-            }
+            String jsonInput = objectMapper.writeValueAsString(Arrays.asList(inputRow.getFields()));
+            System.out.println("input value"+jsonInput);
+            writer.println(jsonInput);
             writer.close();
 
             // Read output from Python process
@@ -77,7 +77,9 @@ public class PythonEngine {
         } catch (IOException | InterruptedException e) {
             throw new RuntimeException("Error transformByPython", e);
         }
-        return null != outputList ? new SeaTunnelRow(outputList.toArray(new Object[0])):null;
+        SeaTunnelRow seaTunnelRow = new SeaTunnelRow(outputList.toArray(new Object[0]));
+        System.out.println("prints seatunnel:"+ seaTunnelRow);
+        return seaTunnelRow;
     }
 
     public void close() {
