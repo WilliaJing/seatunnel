@@ -8,15 +8,7 @@ import org.apache.seatunnel.shade.com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.seatunnel.transform.common.HttpClientUtil;
 import org.apache.seatunnel.transform.exception.TransformCommonError;
 
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
-import java.io.PrintWriter;
+import java.io.*;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Properties;
@@ -40,11 +32,6 @@ public class PythonEngine {
     //    private static final String PATH_PYTHON = "C:\\software\\Python3\\python.exe";
     private final ObjectMapper objectMapper = new ObjectMapper();
 
-    private final String TEMP_SCRIPT = "temp_script";
-    private final String PYTHON_SUFFIX = ".py";
-
-    private File tempScriptFile;
-
     public PythonEngine(String pythonScriptFileId) {
         this.pythonScriptFileId = pythonScriptFileId;
     }
@@ -54,7 +41,7 @@ public class PythonEngine {
             throw TransformCommonError.cannotFindInputFieldError(PythonTransform.PLUGIN_NAME, PYTHON_SCRIPT.toString());
         }
         try {
-            //get file by pythonScriptFileId
+            //get fileStream by pythonScriptFileId
             Properties prop = new Properties();
             InputStream input = PythonEngine.class.getClassLoader().getResourceAsStream("config.properties");
             prop.load(input);
@@ -69,15 +56,15 @@ public class PythonEngine {
             if (null == response) {
                 throw TransformCommonError.cannotFINDFileError(PythonTransform.PLUGIN_NAME, pythonScriptFileId);
             }
-            String seaTunnelHome = Common.getSeaTunnelHome()+File.separator;
-            tempScriptFile = File.createTempFile(TEMP_SCRIPT, PYTHON_SUFFIX,new File(seaTunnelHome));
-            new BufferedWriter(new FileWriter(tempScriptFile)).write(response);
+
             // Start Python process
-            ProcessBuilder processBuilder = new ProcessBuilder(PATH_PYTHON, seaTunnelHome+TEMP_SCRIPT+PYTHON_SUFFIX);
-            System.out.println("python command:"+seaTunnelHome+TEMP_SCRIPT+PYTHON_SUFFIX);
-            processBuilder.redirectErrorStream(true); // Merge error stream with standard output
+            ProcessBuilder processBuilder = new ProcessBuilder(PATH_PYTHON, "-c", "import sys; exec(sys.stdin.read())");
+            processBuilder.redirectErrorStream(true);
             pythonProcess = processBuilder.start();
+
+            // 把获取的脚本内容写入子进程
             writer = new PrintWriter(new OutputStreamWriter(pythonProcess.getOutputStream()));
+            writer.write(response);
             reader = new BufferedReader(new InputStreamReader(pythonProcess.getInputStream()));
 
         } catch (IOException e) {
@@ -118,7 +105,6 @@ public class PythonEngine {
 
     public void close() {
         try {
-            tempScriptFile.delete();
             writer.close();
             reader.close();
             pythonProcess.destroy();
