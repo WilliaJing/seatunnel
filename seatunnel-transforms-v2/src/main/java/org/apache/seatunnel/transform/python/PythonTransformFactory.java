@@ -25,7 +25,7 @@ import org.apache.seatunnel.api.table.factory.Factory;
 import org.apache.seatunnel.api.table.factory.TableTransformFactory;
 import org.apache.seatunnel.api.table.factory.TableTransformFactoryContext;
 
-import static org.apache.seatunnel.transform.python.PythonTransform.KEY_SCRIPT;
+import static org.apache.seatunnel.transform.python.PythonTransform.PYTHON_SCRIPT;
 
 
 @AutoService(Factory.class)
@@ -37,7 +37,7 @@ public class PythonTransformFactory implements TableTransformFactory {
 
     @Override
     public OptionRule optionRule() {
-        return OptionRule.builder().required(KEY_SCRIPT).build();
+        return OptionRule.builder().required(PYTHON_SCRIPT).build();
     }
 
     @Override

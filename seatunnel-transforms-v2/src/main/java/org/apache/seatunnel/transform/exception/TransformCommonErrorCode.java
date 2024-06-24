@@ -25,8 +25,17 @@ enum TransformCommonErrorCode implements SeaTunnelErrorCode {
             "The input field '<field>' of '<transform>' transform not found in upstream schema"),
     INPUT_FIELDS_NOT_FOUND(
             "TRANSFORM_COMMON-02",
-            "The input fields '<fields>' of '<transform>' transform not found in upstream schema");
+            "The input fields '<fields>' of '<transform>' transform not found in upstream schema"),
 
+    FIND_FILE_ERROR(
+            "FIND_FILE_ERROR", "Failed to find FILE BY HTTP"
+    ),
+    PYTHON_SCRIPT_START_ERROR(
+            "PYTHON_SCRIPT_START_ERROR", "Failed to start Python process"
+    ),
+    PYTHON_SCRIPT_TRANSFORM_ERROR(
+            "PYTHON_SCRIPT_TRANSFORM_ERROR", "Python Script Failed to transform"
+    );
     private final String code;
     private final String description;
 

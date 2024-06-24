@@ -28,17 +28,17 @@ import java.util.List;
  */
 public class PythonTransform extends AbstractCatalogSupportTransform {
 
-    public static final String PLUGIN_NAME = "Python";
+    public static final String PLUGIN_NAME = "PythonScript";
 
-    public static final Option<String> KEY_SCRIPT =
-            Options.key("script").stringType().noDefaultValue().withDescription("The Python script path");
+    public static final Option<String> PYTHON_SCRIPT =
+            Options.key("pythonScriptFileId").stringType().noDefaultValue().withDescription("The Python script file id");
 
-    private final String scriptPath;
+    private final String pythonScriptFileId;
     private transient PythonEngine pythonEngine;
 
     public PythonTransform(@NonNull ReadonlyConfig config, @NonNull CatalogTable catalogTable) {
         super(catalogTable);
-        this.scriptPath = config.get(KEY_SCRIPT);
+        this.pythonScriptFileId = config.get(PYTHON_SCRIPT);
         // 可以添加其他配置项的初始化逻辑
     }
 
@@ -49,7 +49,7 @@ public class PythonTransform extends AbstractCatalogSupportTransform {
 
     @Override
     public void open() {
-        pythonEngine = new PythonEngine(scriptPath);
+        pythonEngine = new PythonEngine(pythonScriptFileId);
         pythonEngine.init(); // 初始化 Python 引擎
     }
 

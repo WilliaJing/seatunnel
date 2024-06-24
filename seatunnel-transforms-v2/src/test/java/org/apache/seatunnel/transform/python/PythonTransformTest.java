@@ -33,8 +33,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Objects;
 
-import static org.apache.seatunnel.transform.python.PythonTransform.KEY_SCRIPT;
-
 public class PythonTransformTest {
 
     private static final String TEST_NAME = "test";
@@ -43,16 +41,13 @@ public class PythonTransformTest {
             new String[]{"id", "name", "age", TIMESTAMP_FILEDNAME};
     private static final String GENERATE_PARTITION_KEY = "dt";
 
-    private static final String PATH = "/Users/wjing/seatunnel/seatunnel-transforms-v2/src/test/java/org/apache/" +
-            "seatunnel/transform/python/process_data.py";
-
     private static final ReadonlyConfig READONLY_CONFIG =
             ReadonlyConfig.fromMap(
                     new HashMap() {
                         {
                             put(
-                                    "script",
-                                    PATH);
+                                    "pythonScriptFileId",
+                                    "72588ec3-a948-4e58-a125-f7c6c6c48213");
                         }
                     });
 

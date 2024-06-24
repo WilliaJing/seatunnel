@@ -23,8 +23,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static org.apache.seatunnel.transform.exception.TransformCommonErrorCode.INPUT_FIELDS_NOT_FOUND;
-import static org.apache.seatunnel.transform.exception.TransformCommonErrorCode.INPUT_FIELD_NOT_FOUND;
+import static org.apache.seatunnel.transform.exception.TransformCommonErrorCode.*;
 
 /** The common error of SeaTunnel transform. Please refer {@link CommonError} */
 public class TransformCommonError {
@@ -43,4 +42,29 @@ public class TransformCommonError {
         params.put("transform", transform);
         return new TransformException(INPUT_FIELDS_NOT_FOUND, params);
     }
+
+    public static TransformException startPythonError(
+            String transform, String pythonScriptFileId) {
+        Map<String, String> params = new HashMap<>();
+        params.put("fileId", pythonScriptFileId);
+        params.put("transform", transform);
+        return new TransformException(PYTHON_SCRIPT_START_ERROR, params);
+    }
+
+    public static TransformException transformPythonError(
+            String transform, String pythonScriptFileId) {
+        Map<String, String> params = new HashMap<>();
+        params.put("fileId", pythonScriptFileId);
+        params.put("transform", transform);
+        return new TransformException(PYTHON_SCRIPT_TRANSFORM_ERROR, params);
+    }
+
+    public static TransformException cannotFINDFileError(
+            String transform, String pythonScriptFileId) {
+        Map<String, String> params = new HashMap<>();
+        params.put("fileId", pythonScriptFileId);
+        params.put("transform", transform);
+        return new TransformException(FIND_FILE_ERROR, params);
+    }
+
 }

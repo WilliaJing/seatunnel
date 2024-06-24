@@ -27,8 +27,8 @@ import java.io.IOException;
 public class TestPythonIT extends TestSuiteBase {
 
     @TestTemplate
-    public void testPythonSet(TestContainer container) throws IOException, InterruptedException {
-        Container.ExecResult pythonTransform = container.executeJob("/python_transform/python_set.conf");
+    public void testPythonSScript(TestContainer container) throws IOException, InterruptedException {
+        Container.ExecResult pythonTransform = container.executeJob("/python_transform/python_script.conf");
         Assertions.assertEquals(0, pythonTransform.getExitCode());
     }
 
