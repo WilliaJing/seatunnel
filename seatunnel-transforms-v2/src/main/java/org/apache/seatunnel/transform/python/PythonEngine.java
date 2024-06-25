@@ -110,7 +110,7 @@ public class PythonEngine {
             // Wait for Python process to complete
             int exitCode = pythonProcess.waitFor();
             log.info("Python process exited with code={}", exitCode);
-        } catch (IOException e) {
+        } catch (IOException | InterruptedException e) {
             log.error("[PythonTransform] transform by inputRow error,python_script_file_id={}", pythonScriptFileId, e);
             throw TransformCommonError.executeTransformError(PythonTransform.PLUGIN_NAME, inputRow.toString());
         }
