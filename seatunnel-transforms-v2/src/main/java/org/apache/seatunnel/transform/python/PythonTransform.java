@@ -10,6 +10,8 @@ import org.apache.seatunnel.api.table.catalog.TableIdentifier;
 import org.apache.seatunnel.api.table.catalog.TableSchema;
 import org.apache.seatunnel.api.table.type.SeaTunnelRow;
 import org.apache.seatunnel.transform.common.AbstractCatalogSupportTransform;
+import org.apache.seatunnel.transform.python.PythonEngineFactory.PythonEngineType;
+
 
 /**
  * @description:
@@ -24,19 +26,21 @@ public class PythonTransform extends AbstractCatalogSupportTransform {
     public static final Option<String> PYTHON_SCRIPT_FILE_ID =
             Options.key("python_script_file_id").stringType().noDefaultValue().withDescription("The Python script file id");
 
+    private final PythonEngineType pythonEngineType;
     private transient PythonEngine pythonEngine;
 
     private final String pythonScriptFileId;
 
     public PythonTransform(@NonNull ReadonlyConfig config, @NonNull CatalogTable catalogTable) {
         super(catalogTable);
-        pythonScriptFileId = config.get(PYTHON_SCRIPT_FILE_ID);
+        this.pythonScriptFileId = config.get(PYTHON_SCRIPT_FILE_ID);
+        this.pythonEngineType = PythonEngineType.PYTHON_ZETA;
     }
 
     @Override
     public void open() {
-        pythonEngine = new PythonEngine(pythonScriptFileId);
-        pythonEngine.init(); // 初始化 Python 引擎
+        pythonEngine = PythonEngineFactory.getPythonEngine(pythonEngineType);
+        pythonEngine.init(pythonScriptFileId); // 初始化 Python 引擎
     }
 
     @Override
@@ -65,6 +69,7 @@ public class PythonTransform extends AbstractCatalogSupportTransform {
 
     @Override
     protected TableSchema transformTableSchema() {
+        tryOpen();
         return inputCatalogTable.getTableSchema();
     }
 

@@ -29,7 +29,7 @@ import static org.apache.seatunnel.transform.python.PythonTransform.PYTHON_SCRIP
 @Slf4j
 public class PythonEngine {
 
-    private final String pythonScriptFileId;
+    private String pythonScriptFileId;
     private Process pythonProcess;
     private PrintWriter writer;
     private BufferedReader reader;
@@ -37,16 +37,15 @@ public class PythonEngine {
     //    private static final String PATH_PYTHON = "C:\\software\\Python3\\python.exe";
     private final ObjectMapper objectMapper = new ObjectMapper();
 
-    public PythonEngine(String pythonScriptFileId) {
-        this.pythonScriptFileId = pythonScriptFileId;
+    public PythonEngine() {
     }
 
-    public void init() {
-        System.out.println("init pythonTransform.......");
+    public void init(String pythonScriptFileId) {
         if (StringUtils.isEmpty(pythonScriptFileId)) {
             log.error("[PythonTransform]python_script_file_id is must be not null");
             throw TransformCommonError.initTransformError(PythonTransform.PLUGIN_NAME, null);
         }
+        this.pythonScriptFileId = pythonScriptFileId;
         String configOption = Options.key(PYTHON_SCRIPT_FILE_ID.key()).stringType()
                 .defaultValue(pythonScriptFileId).toString();
         try {
@@ -113,7 +112,7 @@ public class PythonEngine {
             int exitCode = pythonProcess.waitFor();
             log.info("Python process exited with code={}", exitCode);
         } catch (IOException | InterruptedException e) {
-            log.error("[PythonTransform] transform by inputRow error", e);
+            log.error("[PythonTransform] transform by inputRow error,python_script_file_id{}", pythonScriptFileId, e);
             throw TransformCommonError.executeTransformError(PythonTransform.PLUGIN_NAME, inputRow.toString());
         }
         SeaTunnelRow seaTunnelRow = new SeaTunnelRow(outputList.toArray(new Object[0]));
