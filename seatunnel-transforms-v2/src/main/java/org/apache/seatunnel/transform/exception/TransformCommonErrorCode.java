@@ -30,11 +30,11 @@ enum TransformCommonErrorCode implements SeaTunnelErrorCode {
     FIND_FILE_ERROR(
             "FIND_FILE_ERROR", "Failed to find FILE BY HTTP"
     ),
-    PYTHON_SCRIPT_START_ERROR(
-            "PYTHON_SCRIPT_START_ERROR", "Failed to start Python process"
+    INIT_TRANSFORM_ERROR(
+            "INIT_TRANSFORM_ERROR", "'<transform>'Failed to init,config:'<config>'"
     ),
-    PYTHON_SCRIPT_TRANSFORM_ERROR(
-            "PYTHON_SCRIPT_TRANSFORM_ERROR", "Python Script Failed to transform"
+    EXECUTE_TRANSFORM_ERROR(
+            "EXECUTE_TRANSFORM_ERROR", "'<transform>'Failed to execute,config:'<config>'"
     );
     private final String code;
     private final String description;

@@ -46,13 +46,13 @@ public class PythonTransformTest {
                     new HashMap() {
                         {
                             put(
-                                    "pythonScriptFileId",
+                                    "python_script_file_id",
                                     "72588ec3-a948-4e58-a125-f7c6c6c48213");
                         }
                     });
 
     @Test
-    public void testScaleSupport() {
+    public void testTableSchemaSupport() {
         PythonTransform pythonTransform = new PythonTransform(READONLY_CONFIG, getCatalogTable());
         TableSchema tableSchema = pythonTransform.transformTableSchema();
         tableSchema

@@ -43,28 +43,20 @@ public class TransformCommonError {
         return new TransformException(INPUT_FIELDS_NOT_FOUND, params);
     }
 
-    public static TransformException startPythonError(
-            String transform, String pythonScriptFileId) {
+    public static TransformException initTransformError(
+            String transform, String config) {
         Map<String, String> params = new HashMap<>();
-        params.put("fileId", pythonScriptFileId);
+        params.put("config", config);
         params.put("transform", transform);
-        return new TransformException(PYTHON_SCRIPT_START_ERROR, params);
+        return new TransformException(INIT_TRANSFORM_ERROR, params);
     }
 
-    public static TransformException transformPythonError(
+    public static TransformException executeTransformError(
             String transform, String pythonScriptFileId) {
         Map<String, String> params = new HashMap<>();
-        params.put("fileId", pythonScriptFileId);
+        params.put("config", pythonScriptFileId);
         params.put("transform", transform);
-        return new TransformException(PYTHON_SCRIPT_TRANSFORM_ERROR, params);
-    }
-
-    public static TransformException cannotFINDFileError(
-            String transform, String pythonScriptFileId) {
-        Map<String, String> params = new HashMap<>();
-        params.put("fileId", pythonScriptFileId);
-        params.put("transform", transform);
-        return new TransformException(FIND_FILE_ERROR, params);
+        return new TransformException(EXECUTE_TRANSFORM_ERROR, params);
     }
 
 }
