@@ -78,9 +78,7 @@ public class PythonEngine {
 
             // 把获取的脚本内容写入子进程
             writer.write(response);
-            if (writer == null) {
-                log.info("write is nulllll,{}", response);
-            }
+            writer.flush();
         } catch (IOException e) {
             log.error("[PythonTransform]PythonTransform init error", e);
             throw TransformCommonError.initTransformError(PythonTransform.PLUGIN_NAME, configOption);
@@ -91,12 +89,13 @@ public class PythonEngine {
         System.out.println("pythonTransform.......");
         List<Object> outputList;
         try {
-            // Communicate with Python process
             String jsonInput = objectMapper.writeValueAsString(Arrays.asList(inputRow.getFields()));
             log.info("input value={}", jsonInput);
             writer.println(jsonInput);
             writer.close();
-
+            if(pythonProcess.isAlive()){
+                log.info("process alive...,{}",pythonProcess.toString());
+            }
             // Read output from Python process
             StringBuilder output = new StringBuilder();
             String line;
@@ -111,8 +110,8 @@ public class PythonEngine {
             // Wait for Python process to complete
             int exitCode = pythonProcess.waitFor();
             log.info("Python process exited with code={}", exitCode);
-        } catch (IOException | InterruptedException e) {
-            log.error("[PythonTransform] transform by inputRow error,python_script_file_id{}", pythonScriptFileId, e);
+        } catch (IOException e) {
+            log.error("[PythonTransform] transform by inputRow error,python_script_file_id={}", pythonScriptFileId, e);
             throw TransformCommonError.executeTransformError(PythonTransform.PLUGIN_NAME, inputRow.toString());
         }
         SeaTunnelRow seaTunnelRow = new SeaTunnelRow(outputList.toArray(new Object[0]));
