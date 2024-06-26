@@ -10,6 +10,7 @@ import org.apache.seatunnel.transform.common.HttpClientUtil;
 import org.apache.seatunnel.transform.exception.TransformCommonError;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -33,9 +34,18 @@ public class PythonEngine {
     private Process pythonProcess;
     private PrintWriter writer;
     private BufferedReader reader;
-    private static final String PATH_PYTHON = "/usr/bin/python3";
-    //    private static final String PATH_PYTHON = "C:\\software\\Python3\\python.exe";
+    private static final String PATH_PYTHON_BIN = "/usr/bin/python3";
+    //    private static final String PATH_PYTHON_BIN = "C:\\software\\Python3\\python.exe";
     private final ObjectMapper objectMapper = new ObjectMapper();
+
+    private String pythonScriptContent;
+
+    private File tempScriptFile;
+
+    private String configOption;
+
+    private static final String DOWNLOAD_URL = "bp-file-server.download.url";
+
 
     public PythonEngine() {
     }
@@ -46,64 +56,43 @@ public class PythonEngine {
             throw TransformCommonError.initTransformError(PythonTransform.PLUGIN_NAME, null);
         }
         this.pythonScriptFileId = pythonScriptFileId;
-        String configOption = Options.key(PYTHON_SCRIPT_FILE_ID.key()).stringType()
+        this.configOption = Options.key(PYTHON_SCRIPT_FILE_ID.key()).stringType()
                 .defaultValue(pythonScriptFileId).toString();
-        try {
-            // Start Python process
-            ProcessBuilder processBuilder = new ProcessBuilder(PATH_PYTHON, "-c", "import sys; exec(sys.stdin.read())");
-            processBuilder.redirectErrorStream(true);
-            pythonProcess = processBuilder.start();
-
-            writer = new PrintWriter(new OutputStreamWriter(pythonProcess.getOutputStream()), true);
-            reader = new BufferedReader(new InputStreamReader(pythonProcess.getInputStream()));
-
-            //get fileStream by pythonScriptFileId
-            Properties prop = new Properties();
-            InputStream input = PythonTransform.class.getClassLoader().getResourceAsStream("config.properties");
-            prop.load(input);
-
-            String url = prop.getProperty("bp-file-server.download.url");
-            if (StringUtils.isEmpty(url)) {
-                log.error("[PythonTransform]get download file url is null");
-                throw TransformCommonError.initTransformError(PythonTransform.PLUGIN_NAME, configOption);
-            }
-            String finalUrl = url.replace("${id}", pythonScriptFileId);
-            log.info("call url={}", finalUrl);
-            String response = HttpClientUtil.sendGetRequest(finalUrl);
-            if (StringUtils.isEmpty(response)) {
-                log.error("[PythonTransform]can not find python script content by bp-file-server,url={}", finalUrl);
-                throw TransformCommonError.initTransformError(PythonTransform.PLUGIN_NAME, configOption);
-            }
-            log.info("GetPythonScriptFileContent={}", response);
-
-            // 把获取的脚本内容写入子进程
-            writer.write(response);
-            writer.flush();
-        } catch (IOException e) {
-            log.error("[PythonTransform]PythonTransform init error", e);
-            throw TransformCommonError.initTransformError(PythonTransform.PLUGIN_NAME, configOption);
-        }
+        // get python script file
+        this.pythonScriptContent = getFileContent();
+        log.info("PythonScriptFileContent={}", pythonScriptContent);
     }
 
     public SeaTunnelRow transformByPython(SeaTunnelRow inputRow) {
-        System.out.println("pythonTransform.......");
         List<Object> outputList;
         try {
+            //one way:file stream to python process
+            ProcessBuilder processBuilder = new ProcessBuilder(PATH_PYTHON_BIN, "-c", pythonScriptContent);
+            //two way:create temp file
+//            this.tempScriptFile = File.createTempFile("process", ".py");
+//            try (BufferedWriter bufferedWriter = Files.newBufferedWriter(tempScriptFile.toPath())) {
+//                bufferedWriter.write(pythonScriptContent);
+//            }
+//            ProcessBuilder processBuilder = new ProcessBuilder(PATH_PYTHON_BIN, tempScriptFile.getAbsolutePath());
+
+            pythonProcess = processBuilder.start();
+            processBuilder.redirectErrorStream(true);
+            writer = new PrintWriter(new OutputStreamWriter(pythonProcess.getOutputStream()), true);
+            reader = new BufferedReader(new InputStreamReader(pythonProcess.getInputStream()));
+
+
             String jsonInput = objectMapper.writeValueAsString(Arrays.asList(inputRow.getFields()));
-            log.info("input value={}", jsonInput);
             writer.println(jsonInput);
             writer.close();
-            if(pythonProcess.isAlive()){
-                log.info("process alive...,{}",pythonProcess.toString());
-            }
+
             // Read output from Python process
             StringBuilder output = new StringBuilder();
             String line;
             while ((line = reader.readLine()) != null) {
-                log.info("output line={}", line);
                 output.append(line);
             }
             String jsonOutput = output.toString();
+            log.info("Python script output (JSON): {}", jsonOutput);
             outputList = objectMapper.readValue(jsonOutput, new TypeReference<List<Object>>() {
             });
 
@@ -114,9 +103,7 @@ public class PythonEngine {
             log.error("[PythonTransform] transform by inputRow error,python_script_file_id={}", pythonScriptFileId, e);
             throw TransformCommonError.executeTransformError(PythonTransform.PLUGIN_NAME, inputRow.toString());
         }
-        SeaTunnelRow seaTunnelRow = new SeaTunnelRow(outputList.toArray(new Object[0]));
-        System.out.println("prints seatunnel:" + seaTunnelRow);
-        return seaTunnelRow;
+        return new SeaTunnelRow(outputList.toArray(new Object[0]));
     }
 
     public void close() {
@@ -133,6 +120,37 @@ public class PythonEngine {
 
         if (null != pythonProcess) {
             pythonProcess.destroy();
+        }
+        tempScriptFile.deleteOnExit();
+    }
+
+    /**
+     * Get fileContent by url
+     *
+     * @return
+     */
+    private String getFileContent() {
+        try {
+            Properties prop = new Properties();
+            InputStream input = PythonTransform.class.getClassLoader().getResourceAsStream("config.properties");
+            prop.load(input);
+
+            String url = prop.getProperty(DOWNLOAD_URL);
+            if (StringUtils.isEmpty(url)) {
+                log.error("[PythonTransform]get download file url is null");
+                throw TransformCommonError.initTransformError(PythonTransform.PLUGIN_NAME, configOption);
+            }
+            String finalUrl = url.replace("${id}", pythonScriptFileId);
+            //send http request
+            String response = HttpClientUtil.sendGetRequest(finalUrl);
+            if (StringUtils.isEmpty(response)) {
+                log.error("[PythonTransform]can not find python script content by bp-file-server,url={}", finalUrl);
+                throw TransformCommonError.initTransformError(PythonTransform.PLUGIN_NAME, configOption);
+            }
+            return response;
+        } catch (IOException e) {
+            log.error("[PythonTransform]PythonTransform init error", e);
+            throw TransformCommonError.initTransformError(PythonTransform.PLUGIN_NAME, configOption);
         }
     }
 

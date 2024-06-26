@@ -69,7 +69,6 @@ public class PythonTransform extends AbstractCatalogSupportTransform {
 
     @Override
     protected TableSchema transformTableSchema() {
-        tryOpen();
         return inputCatalogTable.getTableSchema();
     }
 
