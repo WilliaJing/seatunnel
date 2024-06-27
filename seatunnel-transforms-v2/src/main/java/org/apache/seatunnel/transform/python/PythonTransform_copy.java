@@ -19,7 +19,7 @@ import org.apache.seatunnel.transform.python.PythonEngineFactory.PythonEngineTyp
  * @createDate: 2024/6/20
  */
 @Slf4j
-public class PythonTransform extends AbstractCatalogSupportTransform {
+public class PythonTransform_copy extends AbstractCatalogSupportTransform {
 
     public static final String PLUGIN_NAME = "PythonScript";
 
@@ -31,7 +31,7 @@ public class PythonTransform extends AbstractCatalogSupportTransform {
 
     private final String pythonScriptFileId;
 
-    public PythonTransform(@NonNull ReadonlyConfig config, @NonNull CatalogTable catalogTable) {
+    public PythonTransform_copy(@NonNull ReadonlyConfig config, @NonNull CatalogTable catalogTable) {
         super(catalogTable);
         this.pythonScriptFileId = config.get(PYTHON_SCRIPT_FILE_ID);
         this.pythonEngineType = PythonEngineType.PYTHON_ZETA;

@@ -25,14 +25,14 @@ import org.apache.seatunnel.api.table.factory.Factory;
 import org.apache.seatunnel.api.table.factory.TableTransformFactory;
 import org.apache.seatunnel.api.table.factory.TableTransformFactoryContext;
 
-import static org.apache.seatunnel.transform.python.PythonTransform.PYTHON_SCRIPT_FILE_ID;
+import static org.apache.seatunnel.transform.python.PythonTransform_copy.PYTHON_SCRIPT_FILE_ID;
 
 
 @AutoService(Factory.class)
 public class PythonTransformFactory implements TableTransformFactory {
     @Override
     public String factoryIdentifier() {
-        return PythonTransform.PLUGIN_NAME;
+        return PythonTransform_copy.PLUGIN_NAME;
     }
 
     @Override

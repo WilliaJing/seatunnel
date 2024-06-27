@@ -53,7 +53,7 @@ public class PythonTransformTest {
 
     @Test
     public void testTableSchemaSupport() {
-        PythonTransform pythonTransform = new PythonTransform(READONLY_CONFIG, getCatalogTable());
+        PythonTransform_copy pythonTransform = new PythonTransform_copy(READONLY_CONFIG, getCatalogTable());
         TableSchema tableSchema = pythonTransform.transformTableSchema();
         tableSchema
                 .getColumns()
