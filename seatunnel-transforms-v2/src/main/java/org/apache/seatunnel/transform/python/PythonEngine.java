@@ -121,7 +121,9 @@ public class PythonEngine {
         if (null != pythonProcess) {
             pythonProcess.destroy();
         }
-        tempScriptFile.deleteOnExit();
+/*        if(null != tempScriptFile) {
+            tempScriptFile.deleteOnExit();
+        }*/
     }
 
     /**
