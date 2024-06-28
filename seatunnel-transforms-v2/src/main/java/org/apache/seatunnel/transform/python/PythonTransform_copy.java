@@ -1,3 +1,4 @@
+/*
 package org.apache.seatunnel.transform.python;
 
 import lombok.NonNull;
@@ -13,11 +14,13 @@ import org.apache.seatunnel.transform.common.AbstractCatalogSupportTransform;
 import org.apache.seatunnel.transform.python.PythonEngineFactory.PythonEngineType;
 
 
+*/
 /**
  * @description:
  * @author: wangjing
  * @createDate: 2024/6/20
- */
+ *//*
+
 @Slf4j
 public class PythonTransform_copy extends AbstractCatalogSupportTransform {
 
@@ -79,3 +82,4 @@ public class PythonTransform_copy extends AbstractCatalogSupportTransform {
 
 }
 
+*/

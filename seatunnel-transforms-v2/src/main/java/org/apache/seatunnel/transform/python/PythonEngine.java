@@ -1,3 +1,4 @@
+/*
 package org.apache.seatunnel.transform.python;
 
 import lombok.extern.slf4j.Slf4j;
@@ -22,11 +23,13 @@ import java.util.Properties;
 
 import static org.apache.seatunnel.transform.python.PythonTransform.PYTHON_SCRIPT_FILE_ID;
 
+*/
 /**
  * @description:
  * @author: wangjing
  * @createDate: 2024/6/20
- */
+ *//*
+
 @Slf4j
 public class PythonEngine {
 
@@ -121,16 +124,20 @@ public class PythonEngine {
         if (null != pythonProcess) {
             pythonProcess.destroy();
         }
+*/
 /*        if(null != tempScriptFile) {
             tempScriptFile.deleteOnExit();
-        }*/
+        }*//*
+
     }
 
-    /**
+    */
+/**
      * Get fileContent by url
      *
      * @return
-     */
+     *//*
+
     private String getFileContent() {
         try {
             Properties prop = new Properties();
@@ -157,3 +164,4 @@ public class PythonEngine {
     }
 
 }
+*/

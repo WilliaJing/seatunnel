@@ -1,3 +1,4 @@
+/*
 package org.apache.seatunnel.transform.python;
 
 import org.apache.seatunnel.common.exception.CommonErrorCodeDeprecated;
@@ -20,4 +21,4 @@ public class PythonEngineFactory {
         PYTHON_ZETA,
         PYTHON_INTERNAL
     }
-}
+}*/
