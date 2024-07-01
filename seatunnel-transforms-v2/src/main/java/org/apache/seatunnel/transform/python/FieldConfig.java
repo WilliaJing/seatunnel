@@ -16,27 +16,26 @@
  */
 package org.apache.seatunnel.transform.python;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import org.apache.seatunnel.api.table.type.SeaTunnelDataType;
 
 import java.io.Serializable;
 
 @Data
-@AllArgsConstructor
-@NoArgsConstructor(force = true)
+@Setter
+@Getter
 public class FieldConfig implements Serializable {
-    private final String name;
+    private  String name;
 
-    private final String comment;
+    private  String comment;
 
-    private final boolean primaryKey;
+    private  boolean primaryKey;
 
-    private final boolean nullable;
+    private  boolean nullable;
 
-    private final String defaultValue;
+    private  String defaultValue;
 
-    private final SeaTunnelDataType<?> outputDataType;
+    private  SeaTunnelDataType<?> outputDataType;
 
 }
+

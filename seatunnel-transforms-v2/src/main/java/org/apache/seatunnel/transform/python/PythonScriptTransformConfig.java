@@ -79,9 +79,15 @@ public class PythonScriptTransformConfig implements Serializable {
         for (Map<String, String> map : fields) {
             checkFieldConfig(map);
             FieldConfig fieldConfig = new FieldConfig();
+            fieldConfig.setName(map.get(NAME.key()));
+            fieldConfig.setComment(map.get(COMMENT.key()));
+            fieldConfig.setPrimaryKey(Boolean.parseBoolean(map.get(PRIMARY_KEY.key())));
+            fieldConfig.setNullable(Boolean.parseBoolean(map.get(NULLABLE.key())));
+            fieldConfig.setDefaultValue(map.get(DEFAULT_VALUE.key()));
 
-//            SeaTunnelDataType<?> dataType =
-//                    SeaTunnelDataTypeConvertorUtil.deserializeSeaTunnelDataType(srcField, type);
+
+            SeaTunnelDataType<?> dataType =
+                    SeaTunnelDataTypeConvertorUtil.deserializeSeaTunnelDataType(srcField, type);
             configs.add(fieldConfig);
         }
         return new PythonScriptTransformConfig(configs);
