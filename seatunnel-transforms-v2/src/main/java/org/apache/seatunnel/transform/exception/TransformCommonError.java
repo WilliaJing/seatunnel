@@ -59,4 +59,8 @@ public class TransformCommonError {
         return new TransformException(EXECUTE_TRANSFORM_ERROR, params);
     }
 
+    public static TransformException pythonScriptFileError(String errorMessage) {
+        return new TransformException(PYTHON_SCRIPT_FILE_ERROR, errorMessage);
+    }
+
 }

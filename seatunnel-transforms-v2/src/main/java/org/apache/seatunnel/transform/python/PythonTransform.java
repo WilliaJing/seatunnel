@@ -73,9 +73,9 @@ public class PythonTransform extends MultipleFieldOutputTransform {
     }
 
     private void init() {
-        log.info("s0 init param pythonScriptField={}",pythonScriptFileId);
+        log.info("s0 init param pythonScriptField={}", pythonScriptFileId);
         if (StringUtils.isEmpty(pythonScriptFileId)) {
-            log.error("[PythonTransform]python_script_file_id is must be not null");
+            log.error("[PythonTransform] python_script_file_id is must be not null");
             throw TransformCommonError.initTransformError(PythonTransform.PLUGIN_NAME, null);
         }
         // get python script file
@@ -106,10 +106,9 @@ public class PythonTransform extends MultipleFieldOutputTransform {
         JsonNode jsonNode = exexcutePython(inputValues);
         for (int i = 0; i < size; i++) {
             String fieldName = seaTunnelRowType.getFieldName(i);
-            log.info("output field name:{}", fieldName);
             fieldValues[i] = converters[i].convert(jsonNode.get(i), fieldName);
-            log.info("output field value:{}", fieldValues[i]);
         }
+        log.info("s5 fieldValues={}",Arrays.toString(fieldValues));
         return fieldValues;
 
     }
@@ -134,13 +133,13 @@ public class PythonTransform extends MultipleFieldOutputTransform {
             prop.load(input);
 
             String url = prop.getProperty(DOWNLOAD_URL);
-            log.info("s1 url={}",url);
+            log.info("s1 url={}", url);
             if (StringUtils.isEmpty(url)) {
                 log.error("[PythonTransform]get download file url is null");
                 throw TransformCommonError.initTransformError(PythonTransform.PLUGIN_NAME, configOption);
             }
             String finalUrl = url.replace("${id}", pythonScriptFileId);
-            log.info("s1 finalurl={}",finalUrl);
+            log.info("s1 finalurl={}", finalUrl);
             //send http request
             String response = HttpClientUtil.sendGetRequest(finalUrl);
             if (StringUtils.isEmpty(response)) {
@@ -171,8 +170,8 @@ public class PythonTransform extends MultipleFieldOutputTransform {
                 bufferedWriter.write(pythonScriptContent);
             }
             ProcessBuilder processBuilder = new ProcessBuilder(PATH_PYTHON_BIN, tempScriptFile.getAbsolutePath());*/
-            pythonProcess = processBuilder.start();
             processBuilder.redirectErrorStream(true);
+            pythonProcess = processBuilder.start();
 
             try (PrintWriter writer = new PrintWriter(new OutputStreamWriter(pythonProcess.getOutputStream()), true);
                  BufferedReader reader = new BufferedReader(new InputStreamReader(pythonProcess.getInputStream()))) {
@@ -184,11 +183,22 @@ public class PythonTransform extends MultipleFieldOutputTransform {
                 writer.close();
 
                 // Read output from Python process
-                JsonNode jsonNode = objectMapper.readTree(reader);
-                log.info("s4 python response:{}", jsonNode.toString());
+                StringBuilder output = new StringBuilder();
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    output.append(line);
+                }
                 // Wait for Python process to complete
                 int exitCode = pythonProcess.waitFor();
                 log.info("Python process exited with code={}", exitCode);
+                if (exitCode != 0) {
+                    //python script error
+                    log.error("[PythonTransform] python script file execute error,python process exitCode:{},python output:{}", exitCode, output);
+                    throw TransformCommonError.pythonScriptFileError(output.toString());
+                }
+
+                JsonNode jsonNode = objectMapper.readTree(output.toString());
+                log.info("s4 python response:{}", jsonNode.toString());
                 return jsonNode;
             } catch (IOException | InterruptedException e) {
                 log.error("[PythonTransform] transform by inputRow error,python_script_file_id={}", pythonScriptFileId, e);
