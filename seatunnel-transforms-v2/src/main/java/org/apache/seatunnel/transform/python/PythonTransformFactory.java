@@ -18,18 +18,24 @@
 package org.apache.seatunnel.transform.python;
 
 import com.google.auto.service.AutoService;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.seatunnel.api.configuration.util.OptionRule;
 import org.apache.seatunnel.api.table.catalog.CatalogTable;
 import org.apache.seatunnel.api.table.connector.TableTransform;
 import org.apache.seatunnel.api.table.factory.Factory;
 import org.apache.seatunnel.api.table.factory.TableTransformFactory;
 import org.apache.seatunnel.api.table.factory.TableTransformFactoryContext;
+import org.apache.seatunnel.shade.com.fasterxml.jackson.core.JsonProcessingException;
+import org.apache.seatunnel.shade.com.fasterxml.jackson.databind.ObjectMapper;
 
 import static org.apache.seatunnel.transform.python.PythonTransform.PYTHON_SCRIPT_FILE_ID;
 
 
 @AutoService(Factory.class)
+@Slf4j
 public class PythonTransformFactory implements TableTransformFactory {
+
+    private static final ObjectMapper objectMapper = new ObjectMapper();
     @Override
     public String factoryIdentifier() {
         return PythonTransform.PLUGIN_NAME;
@@ -42,6 +48,11 @@ public class PythonTransformFactory implements TableTransformFactory {
 
     @Override
     public TableTransform createTransform(TableTransformFactoryContext context) {
+        try {
+            log.info("init context:{}",objectMapper.writeValueAsString(context.getCatalogTables()));
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
         CatalogTable catalogTable = context.getCatalogTables().get(0);
         return () -> new PythonTransform(context.getOptions(), catalogTable);
     }

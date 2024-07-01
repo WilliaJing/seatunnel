@@ -36,7 +36,10 @@ enum TransformCommonErrorCode implements SeaTunnelErrorCode {
     EXECUTE_TRANSFORM_ERROR(
             "EXECUTE_TRANSFORM_ERROR", "'<transform>'Failed to execute,config:'<config>'"
     ),
-    PYTHON_SCRIPT_FILE_ERROR("PYTHON_SCRIPT_FILE_ERROR","python script file occurs error.")
+    PYTHON_SCRIPT_FILE_ERROR("PYTHON_SCRIPT_FILE_ERROR","python script file occurs error."),
+
+    PYTHON_TRANSFORM_FIELDS_MUST_NOT_EMPTY(
+            "PYTHON_TRANSFORM_FIELDS_MUST_NOT_EMPTY", "python transform fields must not empty"),
     ;
     private final String code;
     private final String description;
