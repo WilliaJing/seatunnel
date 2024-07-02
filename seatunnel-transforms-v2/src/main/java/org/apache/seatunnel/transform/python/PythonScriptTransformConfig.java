@@ -84,7 +84,6 @@ public class PythonScriptTransformConfig implements Serializable {
         List<FieldConfig> configs = new ArrayList<>(fields.size());
         for (Map<String, String> map : fields) {
             checkFieldConfig(map);
-            System.out.println("....."+map.toString());
             FieldConfig fieldConfig = new FieldConfig();
             fieldConfig.setName(map.get(NAME.key()));
             fieldConfig.setComment(map.get(COMMENT.key()));

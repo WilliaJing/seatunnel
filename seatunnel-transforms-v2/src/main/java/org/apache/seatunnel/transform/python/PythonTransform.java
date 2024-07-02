@@ -9,8 +9,10 @@ import org.apache.seatunnel.api.configuration.ReadonlyConfig;
 import org.apache.seatunnel.api.table.catalog.CatalogTable;
 import org.apache.seatunnel.api.table.catalog.Column;
 import org.apache.seatunnel.api.table.catalog.PhysicalColumn;
+import org.apache.seatunnel.api.table.catalog.TableSchema;
 import org.apache.seatunnel.api.table.type.SeaTunnelDataType;
 import org.apache.seatunnel.api.table.type.SeaTunnelRowType;
+import org.apache.seatunnel.common.utils.JsonUtils;
 import org.apache.seatunnel.format.json.JsonToRowConverters;
 import org.apache.seatunnel.shade.com.fasterxml.jackson.databind.JsonNode;
 import org.apache.seatunnel.shade.com.fasterxml.jackson.databind.ObjectMapper;
@@ -19,17 +21,9 @@ import org.apache.seatunnel.transform.common.MultipleFieldOutputTransform;
 import org.apache.seatunnel.transform.common.SeaTunnelRowAccessor;
 import org.apache.seatunnel.transform.exception.TransformCommonError;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
-import java.io.PrintWriter;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Properties;
+import java.io.*;
+import java.util.*;
+
 
 
 /**
@@ -49,7 +43,7 @@ public class PythonTransform extends MultipleFieldOutputTransform {
 
     private final String pythonScriptFileId;
 
-    private final SeaTunnelRowType seaTunnelRowType;
+    private final SeaTunnelRowType inputSeaTunnelRowType;
 
     private SeaTunnelRowType outputSeaTunnelRowType;
 
@@ -74,10 +68,11 @@ public class PythonTransform extends MultipleFieldOutputTransform {
         super(catalogTable);
         log.info("s0 start init config:{}",config);
         this.pythonScriptFileId = config.get(PYTHON_SCRIPT_FILE_ID);
-        this.seaTunnelRowType = catalogTable.getSeaTunnelRowType();
+        this.inputSeaTunnelRowType = catalogTable.getSeaTunnelRowType();
         this.fieldConfigs = PythonScriptTransformConfig.of(config).getFieldConfigs();
+        log.info("s0 field configs:{}",JsonUtils.toJsonString(fieldConfigs));
         initOutputSeaTunnelRowType();
-        log.info("s0 output seatunnelrowtype:{}",outputSeaTunnelRowType);
+        log.info("s0 output seatunnelrowtype:{}",outputSeaTunnelRowType.toString());
         init();
     }
 
@@ -138,17 +133,46 @@ public class PythonTransform extends MultipleFieldOutputTransform {
     }
 
     @Override
-    protected Column[] getOutputColumns() {
-//        List<Column> columns = inputCatalogTable.getTableSchema().getColumns();
-//        return columns.toArray(new Column[0]);
-        int len = this.fieldConfigs.size();
-        Column[] columns = new Column[len];
-        for (int i = 0; i < len; i++) {
-            FieldConfig field = fieldConfigs.get(i);
-            columns[i] = PhysicalColumn.of(field.getName(), field.getOutputDataType(), (Long)null, field.isNullable(), field.getDefaultValue(), field.getComment());
+    protected TableSchema transformTableSchema() {
+        outputFieldNames =
+                fieldConfigs.stream()
+                        .map(FieldConfig::getName).toArray(String[]::new);
+        List<String> outputColumns = Arrays.asList(inputSeaTunnelRowType.getFieldNames());
+        TableSchema.Builder builder = TableSchema.builder();
+        if (inputCatalogTable.getTableSchema().getPrimaryKey() != null
+                && new HashSet<>(outputColumns).containsAll(
+                inputCatalogTable.getTableSchema().getPrimaryKey().getColumnNames())) {
+            builder.primaryKey(inputCatalogTable.getTableSchema().getPrimaryKey().copy());
         }
-        return columns;
+        int size = this.fieldConfigs.size();
+        List<Column> columns = new ArrayList<>(size);
+        for (int i = 0; i < size; i++) {
+            FieldConfig field = fieldConfigs.get(i);
+            Column column = PhysicalColumn.of(field.getName(), field.getOutputDataType(), (Long)null, field.getNullable(),
+                    field.getDefaultValue(), field.getComment());
+            columns.add(column);
+        }
+        log.info("s6 output columns:{}", JsonUtils.toJsonString(columns));
+        return builder.columns(columns).build();
     }
+
+    @Override
+    protected Column[] getOutputColumns() {
+        return null;
+    }
+
+//    @Override
+//    protected Column[] getOutputColumns() {
+////        List<Column> columns = inputCatalogTable.getTableSchema().getColumns();
+////        return columns.toArray(new Column[0]);
+//        int len = this.fieldConfigs.size();
+//        Column[] columns = new Column[len];
+//        for (int i = 0; i < len; i++) {
+//            FieldConfig field = fieldConfigs.get(i);
+//            columns[i] = PhysicalColumn.of(field.getName(), field.getOutputDataType(), (Long)null, field.getNullable(), field.getDefaultValue(), field.getComment());
+//        }
+//        return columns;
+//    }
 
     /**
      * Get fileContent by url

@@ -37,7 +37,7 @@ public abstract class MultipleFieldOutputTransform extends AbstractCatalogSuppor
 
     private static final String[] TYPE_ARRAY_STRING = new String[0];
 
-    private String[] outputFieldNames;
+    protected String[] outputFieldNames;
     private int[] fieldsIndex;
     private SeaTunnelRowContainerGenerator rowContainerGenerator;
 

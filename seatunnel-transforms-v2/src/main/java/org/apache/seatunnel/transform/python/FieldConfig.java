@@ -22,16 +22,15 @@ import org.apache.seatunnel.api.table.type.SeaTunnelDataType;
 import java.io.Serializable;
 
 @Data
-@Setter
-@Getter
 public class FieldConfig implements Serializable {
+
     private  String name;
 
     private  String comment;
 
-    private  boolean primaryKey;
+    private  Boolean primaryKey;
 
-    private  boolean nullable;
+    private  Boolean nullable;
 
     private  String defaultValue;
 
