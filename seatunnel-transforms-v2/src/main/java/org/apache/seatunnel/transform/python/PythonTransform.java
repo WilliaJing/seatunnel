@@ -8,6 +8,8 @@ import org.apache.seatunnel.api.configuration.Options;
 import org.apache.seatunnel.api.configuration.ReadonlyConfig;
 import org.apache.seatunnel.api.table.catalog.CatalogTable;
 import org.apache.seatunnel.api.table.catalog.Column;
+import org.apache.seatunnel.api.table.catalog.PhysicalColumn;
+import org.apache.seatunnel.api.table.type.SeaTunnelDataType;
 import org.apache.seatunnel.api.table.type.SeaTunnelRowType;
 import org.apache.seatunnel.format.json.JsonToRowConverters;
 import org.apache.seatunnel.shade.com.fasterxml.jackson.databind.JsonNode;
@@ -49,6 +51,10 @@ public class PythonTransform extends MultipleFieldOutputTransform {
 
     private final SeaTunnelRowType seaTunnelRowType;
 
+    private SeaTunnelRowType outputSeaTunnelRowType;
+
+    private List<FieldConfig> fieldConfigs;
+
     private static final String PATH_PYTHON_BIN = "/usr/bin/python3";
     //    private static final String PATH_PYTHON_BIN = "C:\\software\\Python3\\python.exe";
     private final ObjectMapper objectMapper = new ObjectMapper();
@@ -61,15 +67,31 @@ public class PythonTransform extends MultipleFieldOutputTransform {
     private Process pythonProcess;
     private File tempScriptFile;
 
+
     private JsonToRowConverters.JsonToObjectConverter[] converters;
 
     public PythonTransform(@NonNull ReadonlyConfig config, @NonNull CatalogTable catalogTable) {
         super(catalogTable);
-        log.info("s0 start init...");
+        log.info("s0 start init config:{}",config);
         this.pythonScriptFileId = config.get(PYTHON_SCRIPT_FILE_ID);
         this.seaTunnelRowType = catalogTable.getSeaTunnelRowType();
-        //通过文件id获取文件流
+        this.fieldConfigs = PythonScriptTransformConfig.of(config).getFieldConfigs();
+        initOutputSeaTunnelRowType();
+        log.info("s0 output seatunnelrowtype:{}",outputSeaTunnelRowType);
         init();
+    }
+
+    private void initOutputSeaTunnelRowType() {
+        SeaTunnelDataType<?>[] dataTypes =
+                this.fieldConfigs.stream()
+                        .map(FieldConfig::getOutputDataType)
+                        .toArray(SeaTunnelDataType<?>[]::new);
+        this.outputSeaTunnelRowType =
+                new SeaTunnelRowType(
+                        this.fieldConfigs.stream()
+                                .map(FieldConfig::getName)
+                                .toArray(String[]::new),
+                        dataTypes);
     }
 
     private void init() {
@@ -82,10 +104,10 @@ public class PythonTransform extends MultipleFieldOutputTransform {
         this.pythonScriptContent = getFileContent();
         log.info("s2 file content{}", pythonScriptContent);
         JsonToRowConverters jsonToRowConverters = new JsonToRowConverters(false, false);
-        this.converters =
-                Arrays.stream(this.seaTunnelRowType.getFieldTypes())
-                        .map(jsonToRowConverters::createConverter)
-                        .toArray(JsonToRowConverters.JsonToObjectConverter[]::new);
+        this.converters = Arrays.stream(outputSeaTunnelRowType.getFieldTypes())
+                .map(jsonToRowConverters::createConverter)
+                .toArray(JsonToRowConverters.JsonToObjectConverter[]::new);
+
     }
 
     @Override
@@ -97,15 +119,17 @@ public class PythonTransform extends MultipleFieldOutputTransform {
     protected Object[] getOutputFieldValues(SeaTunnelRowAccessor inputRow) {
 
         int size = inputRow.getArity();
-        Object[] fieldValues = new Object[size];
         List<Object> inputValues = new ArrayList<>();
         for (int i = 0; i < size; i++) {
             Object inputValueByType = inputRow.getField(i);
             inputValues.add(inputValueByType);
         }
         JsonNode jsonNode = exexcutePython(inputValues);
-        for (int i = 0; i < size; i++) {
-            String fieldName = seaTunnelRowType.getFieldName(i);
+        int outSize = outputSeaTunnelRowType.getTotalFields();
+        Object[] fieldValues = new Object[outSize];
+        String[] fieldNames = outputSeaTunnelRowType.getFieldNames();
+        for (int i = 0; i < outSize; i++) {
+            String fieldName = fieldNames[i];
             fieldValues[i] = converters[i].convert(jsonNode.get(i), fieldName);
         }
         log.info("s5 fieldValues={}",Arrays.toString(fieldValues));
@@ -115,8 +139,15 @@ public class PythonTransform extends MultipleFieldOutputTransform {
 
     @Override
     protected Column[] getOutputColumns() {
-        List<Column> columns = inputCatalogTable.getTableSchema().getColumns();
-        return columns.toArray(new Column[0]);
+//        List<Column> columns = inputCatalogTable.getTableSchema().getColumns();
+//        return columns.toArray(new Column[0]);
+        int len = this.fieldConfigs.size();
+        Column[] columns = new Column[len];
+        for (int i = 0; i < len; i++) {
+            FieldConfig field = fieldConfigs.get(i);
+            columns[i] = PhysicalColumn.of(field.getName(), field.getOutputDataType(), (Long)null, field.isNullable(), field.getDefaultValue(), field.getComment());
+        }
+        return columns;
     }
 
     /**

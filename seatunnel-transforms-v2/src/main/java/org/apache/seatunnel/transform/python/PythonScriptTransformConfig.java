@@ -19,6 +19,8 @@ package org.apache.seatunnel.transform.python;
 import org.apache.seatunnel.api.configuration.Option;
 import org.apache.seatunnel.api.configuration.Options;
 import org.apache.seatunnel.api.configuration.ReadonlyConfig;
+import org.apache.seatunnel.api.table.catalog.SeaTunnelDataTypeConvertorUtil;
+import org.apache.seatunnel.api.table.type.SeaTunnelDataType;
 import org.apache.seatunnel.shade.com.fasterxml.jackson.core.type.TypeReference;
 import org.apache.seatunnel.transform.exception.TransformCommonError;
 
@@ -53,7 +55,7 @@ public class PythonScriptTransformConfig implements Serializable {
                     .booleanType()
                     .defaultValue(false);
     public static final Option<String> OUTPUT_DATA_TYPE =
-            Options.key("outputDataTYpe")
+            Options.key("outputDataType")
                     .stringType()
                     .noDefaultValue();
 
@@ -65,6 +67,10 @@ public class PythonScriptTransformConfig implements Serializable {
 
 
     private final List<FieldConfig> fieldConfigs;
+
+    public List<FieldConfig> getFieldConfigs(){
+        return fieldConfigs;
+    }
 
     public PythonScriptTransformConfig(List<FieldConfig> fieldConfigs) {
         this.fieldConfigs = fieldConfigs;
@@ -78,16 +84,17 @@ public class PythonScriptTransformConfig implements Serializable {
         List<FieldConfig> configs = new ArrayList<>(fields.size());
         for (Map<String, String> map : fields) {
             checkFieldConfig(map);
+            System.out.println("....."+map.toString());
             FieldConfig fieldConfig = new FieldConfig();
             fieldConfig.setName(map.get(NAME.key()));
             fieldConfig.setComment(map.get(COMMENT.key()));
             fieldConfig.setPrimaryKey(Boolean.parseBoolean(map.get(PRIMARY_KEY.key())));
             fieldConfig.setNullable(Boolean.parseBoolean(map.get(NULLABLE.key())));
             fieldConfig.setDefaultValue(map.get(DEFAULT_VALUE.key()));
-
-
+            String type = map.get(OUTPUT_DATA_TYPE.key());
             SeaTunnelDataType<?> dataType =
-                    SeaTunnelDataTypeConvertorUtil.deserializeSeaTunnelDataType(srcField, type);
+                    SeaTunnelDataTypeConvertorUtil.deserializeSeaTunnelDataType(fieldConfig.getName(), type);
+            fieldConfig.setOutputDataType(dataType);
             configs.add(fieldConfig);
         }
         return new PythonScriptTransformConfig(configs);
