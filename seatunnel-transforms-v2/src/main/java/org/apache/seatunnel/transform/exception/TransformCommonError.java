@@ -63,8 +63,4 @@ public class TransformCommonError {
         return new TransformException(PYTHON_SCRIPT_FILE_ERROR, errorMessage);
     }
 
-    public static TransformException pythonFieldError(){
-        return new TransformException(PYTHON_TRANSFORM_FIELDS_MUST_NOT_EMPTY,PYTHON_TRANSFORM_FIELDS_MUST_NOT_EMPTY.getErrorMessage());
-    }
-
 }

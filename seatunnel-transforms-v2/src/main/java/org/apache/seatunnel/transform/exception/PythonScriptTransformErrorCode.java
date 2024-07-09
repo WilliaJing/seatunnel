@@ -14,45 +14,35 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.apache.seatunnel.transform.exception;
 
 import org.apache.seatunnel.common.exception.SeaTunnelErrorCode;
 
-enum TransformCommonErrorCode implements SeaTunnelErrorCode {
-    INPUT_FIELD_NOT_FOUND(
-            "TRANSFORM_COMMON-01",
-            "The input field '<field>' of '<transform>' transform not found in upstream schema"),
-    INPUT_FIELDS_NOT_FOUND(
-            "TRANSFORM_COMMON-02",
-            "The input fields '<fields>' of '<transform>' transform not found in upstream schema"),
+public enum PythonScriptTransformErrorCode implements SeaTunnelErrorCode {
+   FIELDS_MUST_NOT_EMPTY(
+            "FIELDS_MUST_NOT_EMPTY", "【PythonScript transform】fields must not empty"),
+    NAME_MUST_NOT_EMPTY(
+            "NAME_MUST_NOT_EMPTY", "【PythonScript transform】name must not empty"),
+    OUTPUT_DATA_TYPE_MUST_NOT_EMPTY(
+            "OUTPUT_DATA_TYPE_MUST_NOT_EMPTY", "【PythonScript transform】outputDataType must not empty"),
 
-    FIND_FILE_ERROR(
-            "FIND_FILE_ERROR", "Failed to find FILE BY HTTP"
-    ),
-    INIT_TRANSFORM_ERROR(
-            "INIT_TRANSFORM_ERROR", "'<transform>'Failed to init,config:'<config>'"
-    ),
-    EXECUTE_TRANSFORM_ERROR(
-            "EXECUTE_TRANSFORM_ERROR", "'<transform>'Failed to execute,config:'<config>'"
-    ),
-    PYTHON_SCRIPT_FILE_ERROR("PYTHON_SCRIPT_FILE_ERROR","python script file occurs error."),
+
     ;
     private final String code;
     private final String description;
 
-    TransformCommonErrorCode(String code, String description) {
+    PythonScriptTransformErrorCode(String code, String description) {
         this.code = code;
         this.description = description;
     }
 
     @Override
     public String getCode() {
-        return this.code;
+        return code;
     }
 
     @Override
     public String getDescription() {
-        return this.description;
+        return description;
     }
 }

@@ -9,6 +9,7 @@ import org.apache.seatunnel.api.configuration.ReadonlyConfig;
 import org.apache.seatunnel.api.table.catalog.CatalogTable;
 import org.apache.seatunnel.api.table.catalog.Column;
 import org.apache.seatunnel.api.table.catalog.PhysicalColumn;
+import org.apache.seatunnel.api.table.catalog.PrimaryKey;
 import org.apache.seatunnel.api.table.catalog.TableIdentifier;
 import org.apache.seatunnel.api.table.catalog.TableSchema;
 import org.apache.seatunnel.api.table.type.SeaTunnelDataType;
@@ -71,7 +72,7 @@ public class PythonTransform extends AbstractCatalogSupportTransform {
         super(inputCatalogTable);
         this.pythonScriptFileId = config.get(PYTHON_SCRIPT_FILE_ID);
         this.fieldConfigs = PythonScriptTransformConfig.of(config).getFieldConfigs();
-        log.info("s0 input catalog table:{}", JsonUtils.toJsonString(fieldConfigs));
+        log.info("s0 input catalog table:{}", JsonUtils.toJsonString(inputCatalogTable));
         log.info("s0 field configs:{}", JsonUtils.toJsonString(fieldConfigs));
 
         this.inputSeaTunnelRowType = inputCatalogTable.getSeaTunnelRowType();
@@ -123,8 +124,13 @@ public class PythonTransform extends AbstractCatalogSupportTransform {
         int size = this.fieldConfigs.size();
         List<Column> columns = new ArrayList<>(size);
         for (FieldConfig field : this.fieldConfigs) {
-            Column column = PhysicalColumn.of(field.getName(), field.getOutputDataType(), (Long) null, field.getNullable(),
-                    field.getDefaultValue(), field.getComment());
+            //transform plugin defines the primary key
+            if (field.getPrimaryKey()) {
+                builder.primaryKey(new PrimaryKey(field.getName(), Arrays.asList(field.getName())));
+                // builder.primaryKey(new PrimaryKey("primary key",Arrays.asList("id")));
+            }
+            Column column = PhysicalColumn.of(field.getName(), field.getOutputDataType(), 0L, null,
+                    field.getNullable(), field.getDefaultValue(), field.getComment());
             columns.add(column);
         }
         TableSchema tableSchema = builder.columns(columns).build();
