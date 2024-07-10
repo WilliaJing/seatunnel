@@ -129,7 +129,8 @@ public class PythonTransform extends AbstractCatalogSupportTransform {
                 builder.primaryKey(new PrimaryKey(field.getName(), Arrays.asList(field.getName())));
                 // builder.primaryKey(new PrimaryKey("primary key",Arrays.asList("id")));
             }
-            Column column = PhysicalColumn.of(field.getName(), field.getOutputDataType(), 0L, null,
+            //columnLength may determine the field type of Column, such as sink is a mysql field type (varchar-Text-LongText)
+            Column column = PhysicalColumn.of(field.getName(), field.getOutputDataType(), 255L,
                     field.getNullable(), field.getDefaultValue(), field.getComment());
             columns.add(column);
         }
