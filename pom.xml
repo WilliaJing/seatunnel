@@ -538,8 +538,8 @@
 
     <build>
 
-        <finalName>${project.artifactId}-${project.version}-${scala.version}</finalName>
-
+        <!--<finalName>${project.artifactId}-${project.version}-${scala.version}</finalName>-->
+        <finalName>${project.artifactId}-${project.version}</finalName>
         <pluginManagement>
             <plugins>
 
