@@ -118,7 +118,7 @@ public class SeaTunnelContainer extends AbstractTestContainer {
         executeExtraCommands(server);
 
         server.start();
-        installPython(server);
+//        installPython(server);
         return server;
     }
 

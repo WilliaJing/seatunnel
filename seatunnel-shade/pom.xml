@@ -31,6 +31,7 @@
         <module>seatunnel-guava</module>
         <module>seatunnel-arrow-5.0</module>
         <module>seatunnel-thrift-service</module>
+        <module>seatunnel-janino</module>
     </modules>
 
     <build>
