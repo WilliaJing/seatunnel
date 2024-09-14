@@ -103,12 +103,10 @@ public class StandardTransform extends MultipleFieldOutputTransform {
         } catch (Exception e) {
             throw new TransformException(STANDARD_TRANSFORM_ERROR_CODE, e.getMessage());
         }
-        if (Objects.isNull(documents.first())) {
-            Object[] rs = new Object[1];
-            rs[0] = documents.first().get(modelProjectionFiled);
-            return rs;
-        }
-        return null;
+        Object[] rs = new Object[1];
+        rs[0] = (Objects.nonNull(documents.first())) ? documents.first().get(modelProjectionFiled) : null;
+        log.info("Standard转换输出值:{}", rs[0]);
+        return rs;
 
     }
 }
