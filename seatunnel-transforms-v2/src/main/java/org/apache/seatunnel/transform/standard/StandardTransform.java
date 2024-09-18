@@ -33,6 +33,7 @@ import org.apache.seatunnel.transform.common.SeaTunnelRowAccessor;
 import org.apache.seatunnel.transform.exception.TransformException;
 import org.bson.Document;
 
+import java.util.List;
 import java.util.Objects;
 
 import static org.apache.seatunnel.transform.standard.StandardTransformErrorCode.STANDARD_TRANSFORM_ERROR_CODE;
@@ -52,13 +53,9 @@ public class StandardTransform extends MultipleFieldOutputTransform {
         super(catalogTable);
         SeaTunnelRowType physicalRowDataType = catalogTable.getTableSchema().toPhysicalRowDataType();
         modelId = readonlyConfig.get(StandardTransformConfig.MODEL_ID);
-        String[] inputField = readonlyConfig.get(StandardTransformConfig.INPUT_FIELD).split(",");
-        inputIndex = new int[inputField.length];
-        for (int i = 0; i < inputField.length; i++) {
-            log.info("index:{}", physicalRowDataType.indexOf(inputField[i]));
-            inputIndex[i] = physicalRowDataType.indexOf(inputField[i]);
-        }
-        queryModelField = readonlyConfig.get(StandardTransformConfig.QUERY_MODEL_FIELD).split(",");
+        List<ModelMappingRel> modelMappingRels = readonlyConfig.get(StandardTransformConfig.MODEL_MAPPING_REL);
+        inputIndex = modelMappingRels.stream().mapToInt(rel -> physicalRowDataType.indexOf(rel.getInputField())).toArray();
+        queryModelField = modelMappingRels.stream().map(ModelMappingRel::getQueryModelField).toArray(String[]::new);
         modelProjectionField = readonlyConfig.get(StandardTransformConfig.MODEL_PROJECTION_FIELD);
         outputFieldName = readonlyConfig.get(StandardTransformConfig.OUTPUT_FIELD_NAME);
         outputFieldType = readonlyConfig.get(StandardTransformConfig.OUTPUT_FIELD_TYPE);

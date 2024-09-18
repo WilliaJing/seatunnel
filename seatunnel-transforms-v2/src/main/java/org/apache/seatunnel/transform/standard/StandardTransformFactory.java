@@ -36,9 +36,8 @@ public class StandardTransformFactory implements TableTransformFactory {
     public OptionRule optionRule() {
         return OptionRule.builder()
                 .required(
-                        StandardTransformConfig.INPUT_FIELD,
                         StandardTransformConfig.MODEL_ID,
-                        StandardTransformConfig.QUERY_MODEL_FIELD,
+                        StandardTransformConfig.MODEL_MAPPING_REL,
                         StandardTransformConfig.MODEL_PROJECTION_FIELD,
                         StandardTransformConfig.OUTPUT_FIELD_NAME,
                         StandardTransformConfig.OUTPUT_FIELD_TYPE)

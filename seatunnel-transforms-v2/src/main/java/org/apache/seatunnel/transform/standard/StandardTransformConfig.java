@@ -23,27 +23,23 @@ import org.apache.seatunnel.api.configuration.Option;
 import org.apache.seatunnel.api.configuration.Options;
 
 import java.io.Serializable;
+import java.util.List;
 
 @Getter
 @Setter
 public class StandardTransformConfig implements Serializable {
-
-    public static final Option<String> INPUT_FIELD =
-            Options.key("input_field")
-                    .stringType()
-                    .noDefaultValue()
-                    .withDescription("Input Mapping fields");
 
     public static final Option<String> MODEL_ID =
             Options.key("model_id")
                     .stringType()
                     .noDefaultValue()
                     .withDescription("The model id used for mapping");
-    public static final Option<String> QUERY_MODEL_FIELD =
-            Options.key("query_model_field")
-                    .stringType()
+
+    public static final Option<List<ModelMappingRel>> MODEL_MAPPING_REL =
+            Options.key("model_mapping_rel")
+                    .listType(ModelMappingRel.class)
                     .noDefaultValue()
-                    .withDescription("Query model field");
+                    .withDescription("Mapping between input fields and model fields");
 
     public static final Option<String> MODEL_PROJECTION_FIELD =
             Options.key("model_projection_field")
