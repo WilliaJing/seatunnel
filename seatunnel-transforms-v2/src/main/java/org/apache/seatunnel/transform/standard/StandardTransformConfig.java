@@ -28,28 +28,28 @@ import java.io.Serializable;
 @Setter
 public class StandardTransformConfig implements Serializable {
 
-    public static final Option<String> INPUT_FILED =
-            Options.key("input_filed")
+    public static final Option<String> INPUT_FIELD =
+            Options.key("input_field")
                     .stringType()
                     .noDefaultValue()
-                    .withDescription("Input Mapping Fields");
+                    .withDescription("Input Mapping fields");
 
     public static final Option<String> MODEL_ID =
             Options.key("model_id")
                     .stringType()
                     .noDefaultValue()
                     .withDescription("The model id used for mapping");
-    public static final Option<String> QUERY_MODEL_FILED =
-            Options.key("query_model_filed")
+    public static final Option<String> QUERY_MODEL_FIELD =
+            Options.key("query_model_field")
                     .stringType()
                     .noDefaultValue()
-                    .withDescription("Query model filed");
+                    .withDescription("Query model field");
 
-    public static final Option<String> MODEL_PROJECTION_FILED =
-            Options.key("model_projection_filed")
+    public static final Option<String> MODEL_PROJECTION_FIELD =
+            Options.key("model_projection_field")
                     .stringType()
                     .noDefaultValue()
-                    .withDescription("model projection filed");
+                    .withDescription("model projection field");
 
 //    public static final Option<MappingPattern> MAPPING_PATTERN =
 //            Options.key("mapping_pattern")
@@ -57,15 +57,15 @@ public class StandardTransformConfig implements Serializable {
 //                    .defaultValue(MappingPattern.REPLACE)
 //                    .withDescription("Post-mapping data processing mode");
 
-    public static final Option<String> OUTPUT_FILED_NAME =
-            Options.key("output_filed_name")
+    public static final Option<String> OUTPUT_FIELD_NAME =
+            Options.key("output_field_name")
                     .stringType()
                     .noDefaultValue()
-                    .withDescription("replace or add filed name");
+                    .withDescription("replace or add field name");
 
-    public static final Option<String> OUTPUT_FILED_TYPE =
-            Options.key("output_filed_type")
+    public static final Option<String> OUTPUT_FIELD_TYPE =
+            Options.key("output_field_type")
                     .stringType()
                     .noDefaultValue()
-                    .withDescription("replace or add filed type");
+                    .withDescription("replace or add field type");
 }

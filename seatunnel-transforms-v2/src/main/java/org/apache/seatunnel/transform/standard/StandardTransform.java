@@ -40,11 +40,11 @@ import static org.apache.seatunnel.transform.standard.StandardTransformErrorCode
 @Slf4j
 public class StandardTransform extends MultipleFieldOutputTransform {
     public static final String PLUGIN_NAME = "Standard";
-    private final String[] queryModelFiled;
+    private final String[] queryModelField;
     private int[] inputIndex;
-    private String outputFiledName;
-    private String outputFiledType;
-    private final String modelProjectionFiled;
+    private String outputFieldName;
+    private String outputFieldType;
+    private final String modelProjectionField;
     private final String modelId;
     private final String DEFAULT_DATABASE = "data_platform";
 
@@ -52,16 +52,16 @@ public class StandardTransform extends MultipleFieldOutputTransform {
         super(catalogTable);
         SeaTunnelRowType physicalRowDataType = catalogTable.getTableSchema().toPhysicalRowDataType();
         modelId = readonlyConfig.get(StandardTransformConfig.MODEL_ID);
-        String[] inputFiled = readonlyConfig.get(StandardTransformConfig.INPUT_FILED).split(",");
-        inputIndex = new int[inputFiled.length];
-        for (int i = 0; i < inputFiled.length; i++) {
-            log.info("index:{}", physicalRowDataType.indexOf(inputFiled[i]));
-            inputIndex[i] = physicalRowDataType.indexOf(inputFiled[i]);
+        String[] inputField = readonlyConfig.get(StandardTransformConfig.INPUT_FIELD).split(",");
+        inputIndex = new int[inputField.length];
+        for (int i = 0; i < inputField.length; i++) {
+            log.info("index:{}", physicalRowDataType.indexOf(inputField[i]));
+            inputIndex[i] = physicalRowDataType.indexOf(inputField[i]);
         }
-        queryModelFiled = readonlyConfig.get(StandardTransformConfig.QUERY_MODEL_FILED).split(",");
-        modelProjectionFiled = readonlyConfig.get(StandardTransformConfig.MODEL_PROJECTION_FILED);
-        outputFiledName = readonlyConfig.get(StandardTransformConfig.OUTPUT_FILED_NAME);
-        outputFiledType = readonlyConfig.get(StandardTransformConfig.OUTPUT_FILED_TYPE);
+        queryModelField = readonlyConfig.get(StandardTransformConfig.QUERY_MODEL_FIELD).split(",");
+        modelProjectionField = readonlyConfig.get(StandardTransformConfig.MODEL_PROJECTION_FIELD);
+        outputFieldName = readonlyConfig.get(StandardTransformConfig.OUTPUT_FIELD_NAME);
+        outputFieldType = readonlyConfig.get(StandardTransformConfig.OUTPUT_FIELD_TYPE);
     }
 
     @Override
@@ -73,10 +73,10 @@ public class StandardTransform extends MultipleFieldOutputTransform {
     protected Column[] getOutputColumns() {
         //新增/替换的字段构造Column返回即可
         SeaTunnelDataType<?> dataType =
-                SeaTunnelDataTypeConvertorUtil.deserializeSeaTunnelDataType(outputFiledName, outputFiledType);
+                SeaTunnelDataTypeConvertorUtil.deserializeSeaTunnelDataType(outputFieldName, outputFieldType);
         PhysicalColumn destColumn =
                 PhysicalColumn.of(
-                        outputFiledName,
+                        outputFieldName,
                         dataType,
                         20,
                         true,
@@ -90,12 +90,12 @@ public class StandardTransform extends MultipleFieldOutputTransform {
     @Override
     protected Object[] getOutputFieldValues(SeaTunnelRowAccessor inputRow) {
         Document query = new Document();
-        for (int i = 0; i < queryModelFiled.length; i++) {
-            query.append(queryModelFiled[i], inputRow.getField(inputIndex[i]));
+        for (int i = 0; i < queryModelField.length; i++) {
+            query.append(queryModelField[i], inputRow.getField(inputIndex[i]));
         }
         Document projection = new Document();
         projection.append("_id", 0);
-        projection.append(modelProjectionFiled, 1);
+        projection.append(modelProjectionField, 1);
         FindIterable<Document> documents = null;
         try {
             MongoCollection<Document> collection = MongoFactory.getDS("master").getMongo().getDatabase(DEFAULT_DATABASE).getCollection(modelId);
@@ -104,7 +104,7 @@ public class StandardTransform extends MultipleFieldOutputTransform {
             throw new TransformException(STANDARD_TRANSFORM_ERROR_CODE, e.getMessage());
         }
         Object[] rs = new Object[1];
-        rs[0] = (Objects.nonNull(documents.first())) ? documents.first().get(modelProjectionFiled) : null;
+        rs[0] = (Objects.nonNull(documents.first())) ? documents.first().get(modelProjectionField) : null;
         log.info("Standard转换输出值:{}", rs[0]);
         return rs;
 

@@ -36,12 +36,12 @@ public class StandardTransformFactory implements TableTransformFactory {
     public OptionRule optionRule() {
         return OptionRule.builder()
                 .required(
-                        StandardTransformConfig.INPUT_FILED,
+                        StandardTransformConfig.INPUT_FIELD,
                         StandardTransformConfig.MODEL_ID,
-                        StandardTransformConfig.QUERY_MODEL_FILED,
-                        StandardTransformConfig.MODEL_PROJECTION_FILED,
-                        StandardTransformConfig.OUTPUT_FILED_NAME,
-                        StandardTransformConfig.OUTPUT_FILED_TYPE)
+                        StandardTransformConfig.QUERY_MODEL_FIELD,
+                        StandardTransformConfig.MODEL_PROJECTION_FIELD,
+                        StandardTransformConfig.OUTPUT_FIELD_NAME,
+                        StandardTransformConfig.OUTPUT_FIELD_TYPE)
                 .build();
     }
 
