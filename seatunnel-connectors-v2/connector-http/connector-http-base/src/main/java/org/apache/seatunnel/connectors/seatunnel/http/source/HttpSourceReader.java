@@ -148,6 +148,16 @@ public class HttpSourceReader extends AbstractSingleSplitReader<SeaTunnelRow> {
         if (this.httpParameter.getParams() == null) {
             httpParameter.setParams(new HashMap<>());
         }
+//        //如果httpParameter的body包含这个pageInfo的pageField
+//        Map<String, String> params = this.httpParameter.getParams();
+//        if(params.containsKey(pageInfo.getPageField())){
+//            this.httpParameter
+//                    .getParams()
+//                    .put(pageInfo.getPageField(), pageInfo.getPageIndex().toString());
+//        }else {
+//            // 分页请求字段在body里面
+//            String body = this.httpParameter.getBody();
+//        }
         this.httpParameter
                 .getParams()
                 .put(pageInfo.getPageField(), pageInfo.getPageIndex().toString());

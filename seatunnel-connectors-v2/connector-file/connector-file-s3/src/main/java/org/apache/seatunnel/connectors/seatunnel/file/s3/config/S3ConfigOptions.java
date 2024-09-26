@@ -44,13 +44,13 @@ public class S3ConfigOptions extends BaseSourceConfigOptions {
     public static final Option<String> S3_BUCKET =
             Options.key("bucket").stringType().noDefaultValue().withDescription("S3 bucket");
     public static final Option<String> FS_S3A_ENDPOINT =
-            Options.key("fs.s3a.endpoint")
+            Options.key("fs_s3a_endpoint")
                     .stringType()
                     .noDefaultValue()
                     .withDescription("fs s3a endpoint");
 
     public static final Option<S3aAwsCredentialsProvider> S3A_AWS_CREDENTIALS_PROVIDER =
-            Options.key("fs.s3a.aws.credentials.provider")
+            Options.key("fs_s3a_aws_credentials_provider")
                     .enumType(S3aAwsCredentialsProvider.class)
                     .defaultValue(S3aAwsCredentialsProvider.InstanceProfileCredentialsProvider)
                     .withDescription("s3a aws credentials provider");
