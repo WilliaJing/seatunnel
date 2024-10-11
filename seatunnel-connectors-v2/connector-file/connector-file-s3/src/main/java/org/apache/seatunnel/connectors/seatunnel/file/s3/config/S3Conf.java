@@ -62,10 +62,10 @@ public class S3Conf extends HadoopConf {
         }
 
         s3Options.put(
-                S3ConfigOptions.S3A_AWS_CREDENTIALS_PROVIDER.key(),
+                S3ConfigOptions.S3A_AWS_CREDENTIALS_PROVIDER.key().replace("_","."),
                 config.getString(S3ConfigOptions.S3A_AWS_CREDENTIALS_PROVIDER.key()));
         s3Options.put(
-                S3ConfigOptions.FS_S3A_ENDPOINT.key(),
+                S3ConfigOptions.FS_S3A_ENDPOINT.key().replace("_","."),
                 config.getString(S3ConfigOptions.FS_S3A_ENDPOINT.key()));
         hadoopConf.setExtraOptions(s3Options);
         return hadoopConf;
@@ -86,10 +86,10 @@ public class S3Conf extends HadoopConf {
         }
 
         s3Options.put(
-                S3ConfigOptions.S3A_AWS_CREDENTIALS_PROVIDER.key(),
+                S3ConfigOptions.S3A_AWS_CREDENTIALS_PROVIDER.key().replace("_","."),
                 readonlyConfig.get(S3ConfigOptions.S3A_AWS_CREDENTIALS_PROVIDER).getProvider());
         s3Options.put(
-                S3ConfigOptions.FS_S3A_ENDPOINT.key(),
+                S3ConfigOptions.FS_S3A_ENDPOINT.key().replace("_","."),
                 readonlyConfig.get(S3ConfigOptions.FS_S3A_ENDPOINT));
         hadoopConf.setExtraOptions(s3Options);
         return hadoopConf;
