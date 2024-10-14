@@ -17,12 +17,16 @@
 
 package org.apache.seatunnel.connectors.seatunnel.mongodb.serde;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.seatunnel.api.table.type.RowKind;
 import org.apache.seatunnel.api.table.type.SeaTunnelRow;
+import org.apache.seatunnel.common.utils.JsonUtils;
 import org.apache.seatunnel.connectors.seatunnel.mongodb.exception.MongodbConnectorException;
 import org.apache.seatunnel.connectors.seatunnel.mongodb.sink.MongodbWriterOptions;
 
+import org.bson.BsonDateTime;
 import org.bson.BsonDocument;
+import org.bson.BsonInt32;
 import org.bson.conversions.Bson;
 
 import com.mongodb.client.model.DeleteOneModel;
@@ -32,14 +36,12 @@ import com.mongodb.client.model.UpdateOneModel;
 import com.mongodb.client.model.UpdateOptions;
 import com.mongodb.client.model.WriteModel;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static org.apache.seatunnel.common.exception.CommonErrorCodeDeprecated.ILLEGAL_ARGUMENT;
-
+@Slf4j
 public class RowDataDocumentSerializer implements DocumentSerializer<SeaTunnelRow> {
 
     private final RowDataToBsonConverters.RowDataToBsonConverter rowDataToBsonConverter;
@@ -76,37 +78,51 @@ public class RowDataDocumentSerializer implements DocumentSerializer<SeaTunnelRo
                     final BsonDocument bsonDocument = rowDataToBsonConverter.convert(row);
                     Bson filter = generateFilter(filterConditions.apply(bsonDocument));
                     bsonDocument.remove("_id");
+                    bsonDocument.put("syncUpdateTime",new BsonDateTime(new Date().getTime()));
+                    BsonDocument insertBsonDocument = bsonDocument.clone();
+                    insertBsonDocument.put("syncCreateTime",new BsonDateTime(new Date().getTime()));
+                    insertBsonDocument.put("syncDeleted",new BsonInt32(0));
                     BsonDocument update = new BsonDocument("$set", bsonDocument);
-                    return new UpdateOneModel<>(filter, update, new UpdateOptions().upsert(true));
+                    update.put("$setOnInsert",insertBsonDocument);
+                    UpdateOneModel<BsonDocument> upsertOneModel= new UpdateOneModel<>(filter, update, new UpdateOptions().upsert(true));
+                    log.info("upsertOneModel:{}",upsertOneModel);
+                    return upsertOneModel;
                 };
-
         WriteModelSupplier updateSupplier =
                 row -> {
                     final BsonDocument bsonDocument = rowDataToBsonConverter.convert(row);
                     Bson filter = generateFilter(filterConditions.apply(bsonDocument));
                     bsonDocument.remove("_id");
+                    bsonDocument.put("syncUpdateTime",new BsonDateTime(new Date().getTime()));
                     BsonDocument update = new BsonDocument("$set", bsonDocument);
-                    return new UpdateOneModel<>(filter, update);
+                    UpdateOneModel<BsonDocument> updateOneModel = new UpdateOneModel<>(filter, update);
+                    log.info("updateOneModel:{}",updateOneModel);
+                    return updateOneModel;
                 };
-
         WriteModelSupplier insertSupplier =
                 row -> {
                     final BsonDocument bsonDocument = rowDataToBsonConverter.convert(row);
-                    return new InsertOneModel<>(bsonDocument);
+                    bsonDocument.put("syncDeleted",new BsonInt32(0));
+                    bsonDocument.put("syncCreateTime",new BsonDateTime(new Date().getTime()));
+                    bsonDocument.put("syncUpdateTime",new BsonDateTime(new Date().getTime()));
+                    InsertOneModel<BsonDocument> insertOneModel = new InsertOneModel<>(bsonDocument);
+                    log.info("insertOneModel:{}",insertOneModel);
+                    return insertOneModel;
                 };
-
         WriteModelSupplier deleteSupplier =
                 row -> {
                     final BsonDocument bsonDocument = rowDataToBsonConverter.convert(row);
+                    bsonDocument.put("syncDeleted",new BsonInt32(1));
+                    bsonDocument.put("syncUpdateTime",new BsonDateTime(new Date().getTime()));
                     Bson filter = generateFilter(filterConditions.apply(bsonDocument));
-                    return new DeleteOneModel<>(filter);
+                    DeleteOneModel<BsonDocument> deleteOneModel = new DeleteOneModel<>(filter);
+                    log.info("deleteOneModel:{}",deleteOneModel);
+                    return deleteOneModel;
                 };
-
         writeModelSuppliers.put(RowKind.INSERT, isUpsertEnable ? upsertSupplier : insertSupplier);
         writeModelSuppliers.put(
                 RowKind.UPDATE_AFTER, isUpsertEnable ? upsertSupplier : updateSupplier);
         writeModelSuppliers.put(RowKind.DELETE, deleteSupplier);
-
         return writeModelSuppliers;
     }
 
