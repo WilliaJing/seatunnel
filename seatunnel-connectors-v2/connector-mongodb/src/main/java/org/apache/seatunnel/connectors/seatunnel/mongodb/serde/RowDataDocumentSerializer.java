@@ -17,30 +17,32 @@
 
 package org.apache.seatunnel.connectors.seatunnel.mongodb.serde;
 
-import lombok.extern.slf4j.Slf4j;
-import org.apache.seatunnel.api.table.type.RowKind;
-import org.apache.seatunnel.api.table.type.SeaTunnelRow;
-import org.apache.seatunnel.common.utils.JsonUtils;
-import org.apache.seatunnel.connectors.seatunnel.mongodb.exception.MongodbConnectorException;
-import org.apache.seatunnel.connectors.seatunnel.mongodb.sink.MongodbWriterOptions;
-
-import org.bson.BsonDateTime;
-import org.bson.BsonDocument;
-import org.bson.BsonInt32;
-import org.bson.conversions.Bson;
-
 import com.mongodb.client.model.DeleteOneModel;
 import com.mongodb.client.model.Filters;
 import com.mongodb.client.model.InsertOneModel;
 import com.mongodb.client.model.UpdateOneModel;
 import com.mongodb.client.model.UpdateOptions;
 import com.mongodb.client.model.WriteModel;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.seatunnel.api.table.type.RowKind;
+import org.apache.seatunnel.api.table.type.SeaTunnelRow;
+import org.apache.seatunnel.connectors.seatunnel.mongodb.exception.MongodbConnectorException;
+import org.apache.seatunnel.connectors.seatunnel.mongodb.sink.MongodbWriterOptions;
+import org.bson.BsonDateTime;
+import org.bson.BsonDocument;
+import org.bson.BsonInt32;
+import org.bson.conversions.Bson;
 
-import java.util.*;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static org.apache.seatunnel.common.exception.CommonErrorCodeDeprecated.ILLEGAL_ARGUMENT;
+import static org.apache.seatunnel.connectors.seatunnel.mongodb.serde.MongoDefaultField.*;
+
 @Slf4j
 public class RowDataDocumentSerializer implements DocumentSerializer<SeaTunnelRow> {
 
@@ -72,17 +74,18 @@ public class RowDataDocumentSerializer implements DocumentSerializer<SeaTunnelRo
 
     private Map<RowKind, WriteModelSupplier> createWriteModelSuppliers() {
         Map<RowKind, WriteModelSupplier> writeModelSuppliers = new HashMap<>();
-
+        
         WriteModelSupplier upsertSupplier =
                 row -> {
                     final BsonDocument bsonDocument = rowDataToBsonConverter.convert(row);
                     Bson filter = generateFilter(filterConditions.apply(bsonDocument));
                     bsonDocument.remove("_id");
-                    bsonDocument.put("syncUpdateTime",new BsonDateTime(new Date().getTime()));
-                    BsonDocument insertBsonDocument = bsonDocument.clone();
-                    insertBsonDocument.put("syncCreateTime",new BsonDateTime(new Date().getTime()));
-                    insertBsonDocument.put("syncDeleted",new BsonInt32(0));
+                    bsonDocument.put(SYNC_UPDATE_TIME,new BsonDateTime(new Date().getTime()));
                     BsonDocument update = new BsonDocument("$set", bsonDocument);
+                    //$set and $setOnInsert fields can not to be repeated
+                    BsonDocument insertBsonDocument = new BsonDocument();
+                    insertBsonDocument.put(SYNC_CREATE_TIME,new BsonDateTime(new Date().getTime()));
+                    insertBsonDocument.put(SYNC_DELETED,new BsonInt32(0));
                     update.put("$setOnInsert",insertBsonDocument);
                     UpdateOneModel<BsonDocument> upsertOneModel= new UpdateOneModel<>(filter, update, new UpdateOptions().upsert(true));
                     log.info("upsertOneModel:{}",upsertOneModel);
@@ -93,7 +96,7 @@ public class RowDataDocumentSerializer implements DocumentSerializer<SeaTunnelRo
                     final BsonDocument bsonDocument = rowDataToBsonConverter.convert(row);
                     Bson filter = generateFilter(filterConditions.apply(bsonDocument));
                     bsonDocument.remove("_id");
-                    bsonDocument.put("syncUpdateTime",new BsonDateTime(new Date().getTime()));
+                    bsonDocument.put(SYNC_UPDATE_TIME,new BsonDateTime(new Date().getTime()));
                     BsonDocument update = new BsonDocument("$set", bsonDocument);
                     UpdateOneModel<BsonDocument> updateOneModel = new UpdateOneModel<>(filter, update);
                     log.info("updateOneModel:{}",updateOneModel);
@@ -102,9 +105,9 @@ public class RowDataDocumentSerializer implements DocumentSerializer<SeaTunnelRo
         WriteModelSupplier insertSupplier =
                 row -> {
                     final BsonDocument bsonDocument = rowDataToBsonConverter.convert(row);
-                    bsonDocument.put("syncDeleted",new BsonInt32(0));
-                    bsonDocument.put("syncCreateTime",new BsonDateTime(new Date().getTime()));
-                    bsonDocument.put("syncUpdateTime",new BsonDateTime(new Date().getTime()));
+                    bsonDocument.put(SYNC_DELETED,new BsonInt32(0));
+                    bsonDocument.put(SYNC_CREATE_TIME,new BsonDateTime(new Date().getTime()));
+                    bsonDocument.put(SYNC_UPDATE_TIME,new BsonDateTime(new Date().getTime()));
                     InsertOneModel<BsonDocument> insertOneModel = new InsertOneModel<>(bsonDocument);
                     log.info("insertOneModel:{}",insertOneModel);
                     return insertOneModel;
@@ -112,8 +115,8 @@ public class RowDataDocumentSerializer implements DocumentSerializer<SeaTunnelRo
         WriteModelSupplier deleteSupplier =
                 row -> {
                     final BsonDocument bsonDocument = rowDataToBsonConverter.convert(row);
-                    bsonDocument.put("syncDeleted",new BsonInt32(1));
-                    bsonDocument.put("syncUpdateTime",new BsonDateTime(new Date().getTime()));
+                    bsonDocument.put(SYNC_DELETED,new BsonInt32(1));
+                    bsonDocument.put(SYNC_UPDATE_TIME,new BsonDateTime(new Date().getTime()));
                     Bson filter = generateFilter(filterConditions.apply(bsonDocument));
                     DeleteOneModel<BsonDocument> deleteOneModel = new DeleteOneModel<>(filter);
                     log.info("deleteOneModel:{}",deleteOneModel);
