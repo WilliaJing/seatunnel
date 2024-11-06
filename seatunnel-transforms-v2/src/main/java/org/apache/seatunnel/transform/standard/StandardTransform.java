@@ -48,6 +48,7 @@ public class StandardTransform extends MultipleFieldOutputTransform {
     private final String modelProjectionField;
     private final String modelId;
     private final String DEFAULT_DATABASE = "data_platform";
+    private int outputIndex;
 
     public StandardTransform(ReadonlyConfig readonlyConfig, CatalogTable catalogTable) {
         super(catalogTable);
@@ -59,6 +60,7 @@ public class StandardTransform extends MultipleFieldOutputTransform {
         modelProjectionField = readonlyConfig.get(StandardTransformConfig.MODEL_PROJECTION_FIELD);
         outputFieldName = readonlyConfig.get(StandardTransformConfig.OUTPUT_FIELD_NAME);
         outputFieldType = readonlyConfig.get(StandardTransformConfig.OUTPUT_FIELD_TYPE);
+        outputIndex = physicalRowDataType.indexOf(outputFieldName,false);
     }
 
     @Override
@@ -100,10 +102,13 @@ public class StandardTransform extends MultipleFieldOutputTransform {
         } catch (Exception e) {
             throw new TransformException(STANDARD_TRANSFORM_ERROR_CODE, e.getMessage());
         }
-        Object[] rs = new Object[1];
-        rs[0] = (Objects.nonNull(documents.first())) ? documents.first().get(modelProjectionField) : null;
-        log.info("Standard转换输出值:{}", rs[0]);
-        return rs;
-
+        Object rs = null;
+        if(Objects.nonNull(documents.first())){
+            rs = documents.first().get(modelProjectionField);
+        }else if (outputIndex > -1){
+            // 匹配不到映射的信息的情况：保持和原值相同
+            rs = inputRow.getField(outputIndex);
+        }
+        return new Object[]{rs};
     }
 }
