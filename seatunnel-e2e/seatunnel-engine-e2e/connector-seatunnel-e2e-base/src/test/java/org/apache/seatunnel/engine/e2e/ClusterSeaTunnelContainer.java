@@ -361,7 +361,7 @@ public class ClusterSeaTunnelContainer extends SeaTunnelContainer {
                         + "        \"job.name\": \""
                         + jobName
                         + "\",\n"
-                        + "        \"job.mode\": \""
+                        + "        \"job_mode\": \""
                         + jobMode
                         + "\"\n"
                         + "    },\n"

@@ -105,7 +105,7 @@ public abstract class ClassLoaderITBase extends SeaTunnelContainer {
                             "{\n"
                                     + "\t\"env\": {\n"
                                     + "\t\t\"parallelism\": 10,\n"
-                                    + "\t\t\"job.mode\": \"BATCH\"\n"
+                                    + "\t\t\"job_mode\": \"BATCH\"\n"
                                     + "\t},\n"
                                     + "\t\"source\": [\n"
                                     + "\t\t{\n"
