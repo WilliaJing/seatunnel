@@ -39,7 +39,7 @@ public interface EnvCommonOptions {
                     .withDescription("The job name of this job");
 
     Option<JobMode> JOB_MODE =
-            Options.key("job.mode")
+            Options.key("job_mode")
                     .enumType(JobMode.class)
                     .defaultValue(JobMode.BATCH)
                     .withDescription("The job mode of this job, support Batch and Stream");

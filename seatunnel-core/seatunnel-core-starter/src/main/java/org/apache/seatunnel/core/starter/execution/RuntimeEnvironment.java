@@ -51,8 +51,8 @@ public interface RuntimeEnvironment {
     static JobMode getJobMode(Config config) {
         JobMode jobMode;
         Config envConfig = config.getConfig("env");
-        if (envConfig.hasPath("job.mode")) {
-            jobMode = envConfig.getEnum(JobMode.class, "job.mode");
+        if (envConfig.hasPath("job_mode")) {
+            jobMode = envConfig.getEnum(JobMode.class, "job_mode");
         } else {
             jobMode = JobMode.BATCH;
         }
