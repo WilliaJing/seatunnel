@@ -59,12 +59,12 @@ public class SqlServerDataTypeConvertor implements DataTypeConvertor<SqlServerTy
                 Integer.parseInt(
                         dataTypeProperties.getOrDefault(PRECISION, DEFAULT_PRECISION).toString());
         long length = Long.parseLong(dataTypeProperties.getOrDefault(LENGTH, 0).toString());
-        int scale = (int) dataTypeProperties.getOrDefault(SCALE, DEFAULT_SCALE);
+        int scale = Integer.parseInt(dataTypeProperties.getOrDefault(SCALE, DEFAULT_SCALE).toString());
         BasicTypeDefine typeDefine =
                 BasicTypeDefine.builder()
                         .name(field)
                         .columnType(connectorDataType.getSqlTypeName())
-                        .dataType(connectorDataType.getSqlTypeName())
+                        .dataType(connectorDataType.getName())
                         .length(length)
                         .precision((long) precision)
                         .scale(scale)
