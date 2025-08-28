@@ -883,8 +883,15 @@ CALL FROM_UNIXTIME(1672502400, 'yyyy-MM-dd HH:mm:ss','UTC+6')
 支持的数据类型有：STRING | VARCHAR，INT | INTEGER，LONG | BIGINT，BYTE，FLOAT，DOUBLE，DECIMAL(p,s)，TIMESTAMP，DATE，TIME
 
 示例:
+CAST(NAME AS INT)
 
-CONVERT(NAME AS INT)
+CAST(FLAG AS BOOLEAN)
+
+注意：将值转换为布尔数据类型时，遵循以下规则：
+
+1.  如果值可以被解释为布尔字符串（'true' 或 'false'），则返回相应的布尔值。
+2.  如果值可以被解释为数值（1 或 0），则对于 1 返回 true，对于 0 返回 false。
+3.  如果值无法根据以上规则进行解释，则抛出 TransformException 异常。
 
 ### COALESCE
 

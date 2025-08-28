@@ -226,6 +226,11 @@ public class ZetaSQLFunction {
             Column columnExp = (Column) expression;
             String columnName = columnExp.getColumnName();
             int index = inputRowType.indexOf(columnName, false);
+            if (index == -1
+                    && ("true".equalsIgnoreCase(columnName)
+                    || "false".equalsIgnoreCase(columnName))) {
+                return Boolean.parseBoolean(columnName);
+            }
             if (index != -1) {
                 return inputFields[index];
             } else {
