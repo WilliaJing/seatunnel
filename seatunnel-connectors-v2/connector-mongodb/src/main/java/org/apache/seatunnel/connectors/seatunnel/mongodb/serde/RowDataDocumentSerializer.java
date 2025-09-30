@@ -88,7 +88,6 @@ public class RowDataDocumentSerializer implements DocumentSerializer<SeaTunnelRo
                     insertBsonDocument.put(SYNC_DELETED,new BsonInt32(0));
                     update.put("$setOnInsert",insertBsonDocument);
                     UpdateOneModel<BsonDocument> upsertOneModel= new UpdateOneModel<>(filter, update, new UpdateOptions().upsert(true));
-                    log.info("upsertOneModel:{}",upsertOneModel);
                     return upsertOneModel;
                 };
         WriteModelSupplier updateSupplier =
@@ -99,7 +98,6 @@ public class RowDataDocumentSerializer implements DocumentSerializer<SeaTunnelRo
                     bsonDocument.put(SYNC_UPDATE_TIME,new BsonDateTime(new Date().getTime()));
                     BsonDocument update = new BsonDocument("$set", bsonDocument);
                     UpdateOneModel<BsonDocument> updateOneModel = new UpdateOneModel<>(filter, update);
-                    log.info("updateOneModel:{}",updateOneModel);
                     return updateOneModel;
                 };
         WriteModelSupplier insertSupplier =
@@ -109,7 +107,6 @@ public class RowDataDocumentSerializer implements DocumentSerializer<SeaTunnelRo
                     bsonDocument.put(SYNC_CREATE_TIME,new BsonDateTime(new Date().getTime()));
                     bsonDocument.put(SYNC_UPDATE_TIME,new BsonDateTime(new Date().getTime()));
                     InsertOneModel<BsonDocument> insertOneModel = new InsertOneModel<>(bsonDocument);
-                    log.info("insertOneModel:{}",insertOneModel);
                     return insertOneModel;
                 };
         WriteModelSupplier deleteSupplier =
@@ -119,7 +116,6 @@ public class RowDataDocumentSerializer implements DocumentSerializer<SeaTunnelRo
                     bsonDocument.put(SYNC_UPDATE_TIME,new BsonDateTime(new Date().getTime()));
                     Bson filter = generateFilter(filterConditions.apply(bsonDocument));
                     DeleteOneModel<BsonDocument> deleteOneModel = new DeleteOneModel<>(filter);
-                    log.info("deleteOneModel:{}",deleteOneModel);
                     return deleteOneModel;
                 };
         writeModelSuppliers.put(RowKind.INSERT, isUpsertEnable ? upsertSupplier : insertSupplier);

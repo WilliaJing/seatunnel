@@ -19,6 +19,9 @@ import org.apache.seatunnel.common.utils.JsonUtils;
 import org.apache.seatunnel.format.json.JsonToRowConverters;
 import org.apache.seatunnel.shade.com.fasterxml.jackson.databind.JsonNode;
 import org.apache.seatunnel.shade.com.fasterxml.jackson.databind.ObjectMapper;
+import org.apache.seatunnel.shade.com.fasterxml.jackson.databind.SerializationFeature;
+import org.apache.seatunnel.shade.com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import org.apache.seatunnel.shade.com.fasterxml.jackson.datatype.jsr310.ser.LocalDateTimeSerializer;
 import org.apache.seatunnel.transform.common.AbstractCatalogSupportTransform;
 import org.apache.seatunnel.transform.common.HttpClientUtil;
 import org.apache.seatunnel.transform.exception.TransformCommonError;
@@ -29,6 +32,9 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
+import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -211,7 +217,6 @@ public class PythonTransform extends AbstractCatalogSupportTransform {
      */
     public JsonNode exexcutePython(List<Object> inputValue) {
         try {
-
             //First method: file stream to python process
             ProcessBuilder processBuilder = new ProcessBuilder(PATH_PYTHON_BIN, "-c", pythonScriptContent);
             //Second method: create temp file
@@ -222,7 +227,21 @@ public class PythonTransform extends AbstractCatalogSupportTransform {
             ProcessBuilder processBuilder = new ProcessBuilder(PATH_PYTHON_BIN, tempScriptFile.getAbsolutePath());*/
             processBuilder.redirectErrorStream(true);
             pythonProcess = processBuilder.start();
-
+            // 2. 关键：注册Java 8时间模块（处理LocalDateTime等）
+            JavaTimeModule javaTimeModule = new JavaTimeModule();
+            // 3. 统一所有时间类型的格式（示例：yyyy-MM-dd HH:mm:ss）
+            String pattern = "yyyy-MM-dd HH:mm:ss";
+            // 配置LocalDateTime序列化格式
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern(pattern);
+            javaTimeModule.addSerializer(LocalDateTime.class, new LocalDateTimeSerializer(formatter));
+            // 注册模块
+            objectMapper.registerModule(javaTimeModule);
+            // 4. 配置传统时间类型（Date、Timestamp）
+            SimpleDateFormat sdf = new SimpleDateFormat(pattern);
+            objectMapper.setDateFormat(sdf);
+            objectMapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS); // 禁用时间戳
+            // 5. 兼容性配置
+            objectMapper.disable(SerializationFeature.FAIL_ON_EMPTY_BEANS);
             try (PrintWriter writer = new PrintWriter(new OutputStreamWriter(pythonProcess.getOutputStream()), true);
                  BufferedReader reader = new BufferedReader(new InputStreamReader(pythonProcess.getInputStream()))) {
 
