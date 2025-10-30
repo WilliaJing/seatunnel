@@ -33,6 +33,7 @@ import org.apache.seatunnel.transform.common.SeaTunnelRowAccessor;
 import org.apache.seatunnel.transform.exception.TransformException;
 import org.bson.Document;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
@@ -49,6 +50,7 @@ public class StandardTransform extends MultipleFieldOutputTransform {
     private final String modelId;
     private final String DEFAULT_DATABASE = "data_platform";
     private int outputIndex;
+    private MongoCollection<Document> collection;
 
     public StandardTransform(ReadonlyConfig readonlyConfig, CatalogTable catalogTable) {
         super(catalogTable);
@@ -60,7 +62,23 @@ public class StandardTransform extends MultipleFieldOutputTransform {
         modelProjectionField = readonlyConfig.get(StandardTransformConfig.MODEL_PROJECTION_FIELD);
         outputFieldName = readonlyConfig.get(StandardTransformConfig.OUTPUT_FIELD_NAME);
         outputFieldType = readonlyConfig.get(StandardTransformConfig.OUTPUT_FIELD_TYPE);
-        outputIndex = physicalRowDataType.indexOf(outputFieldName,false);
+        outputIndex = physicalRowDataType.indexOf(outputFieldName, false);
+    }
+
+    @Override
+    public void open() {
+        // 在这里初始化 MongoDB 连接
+        if (collection == null) {
+            collection = MongoFactory.getDS("master")
+                    .getMongo()
+                    .getDatabase(DEFAULT_DATABASE)
+                    .getCollection(modelId);
+        }
+    }
+
+    @Override
+    public void close() {
+        collection = null;
     }
 
     @Override
@@ -88,6 +106,10 @@ public class StandardTransform extends MultipleFieldOutputTransform {
 
     @Override
     protected Object[] getOutputFieldValues(SeaTunnelRowAccessor inputRow) {
+        if (collection == null) {
+            open();
+        }
+
         Document query = new Document();
         for (int i = 0; i < queryModelField.length; i++) {
             query.append(queryModelField[i], inputRow.getField(inputIndex[i]));
@@ -97,15 +119,14 @@ public class StandardTransform extends MultipleFieldOutputTransform {
         projection.append(modelProjectionField, 1);
         FindIterable<Document> documents = null;
         try {
-            MongoCollection<Document> collection = MongoFactory.getDS("master").getMongo().getDatabase(DEFAULT_DATABASE).getCollection(modelId);
             documents = collection.find(query).projection(projection);
         } catch (Exception e) {
             throw new TransformException(STANDARD_TRANSFORM_ERROR_CODE, e.getMessage());
         }
         Object rs = null;
-        if(Objects.nonNull(documents.first())){
+        if (Objects.nonNull(documents.first())) {
             rs = documents.first().get(modelProjectionField);
-        }else if (outputIndex > -1){
+        } else if (outputIndex > -1) {
             // 匹配不到映射的信息的情况：保持和原值相同
             rs = inputRow.getField(outputIndex);
         }
